@@ -19,13 +19,9 @@ DARKGREEN = (  0, 155,   0)
 DARKGRAY  = ( 40,  40,  40)
 BGCOLOR = BLACK
 
-#UP = 'up'
-#DOWN = 'down'
 LEFT = 'left'
 RIGHT = 'right'
 NONE = 'none'
-
-HEAD = 0 # syntactic sugar: index of the worm's head
 
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
@@ -43,15 +39,12 @@ def main():
 
 
 def runGame():
-    # Set a random start point.
+    # Set the player start point.
     startx = 5
     starty = 45
-    playerCoords = [{'x': startx,     'y': starty}]
+    playerCoords = {'x': startx,     'y': starty}
     bulletCoords = []
     direction = NONE
-
-    # Start the apple in a random place.
-    #apple = getRandomLocation()
 
     while True: # main game loop
         for event in pygame.event.get(): # event handling loop
@@ -64,6 +57,8 @@ def runGame():
                     direction = RIGHT
                 elif event.key == K_ESCAPE:
                     terminate()
+                elif event.key == K_SPACE:
+                    bulletCoords.append({'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) #Add a bullet
             elif event.type == KEYUP: #Signify that the movement should stop
                 if (event.key == K_LEFT or event.key == K_a):
                     direction = NONE
@@ -71,25 +66,28 @@ def runGame():
                     direction = NONE
 
         # check if the player has hit itself or the edge
-        if playerCoords[HEAD]['x'] == -1 or playerCoords[HEAD]['x'] == CELLWIDTH or playerCoords[HEAD]['y'] == -1 or playerCoords[HEAD]['y'] == CELLHEIGHT:
+        if playerCoords['x'] == -1 or playerCoords['x'] == CELLWIDTH:
             return # game over      
 
         # move the worm by adding a segment in the direction it is moving}
         if direction == LEFT:
-            newHead = {'x': playerCoords[HEAD]['x'] - 1, 'y': playerCoords[HEAD]['y']} #Setup the Player Move
+            playerCoords['x'] = playerCoords['x'] - 1
         elif direction == RIGHT:
-            newHead = {'x': playerCoords[HEAD]['x'] + 1, 'y': playerCoords[HEAD]['y']} #Setup the Player Move
-
-
-        if direction != NONE:
-            playerCoords.insert(0, newHead) # Move the player
-            del playerCoords[-1] # Remove old player location            
+            playerCoords['x'] = playerCoords['x'] + 1          
         
+        # Move the bullets that exist
+        if len(bulletCoords) > 0: # If there are bullets
+            for coord in bulletCoords: # Loop through the bullets
+                coord['y'] = coord['y'] - 1 # Move it up
+
+                if coord['y'] < 0: #If the bullet has reached the end of the screen
+                    bulletCoords.remove(coord) #Remove it
+
 
         DISPLAYSURF.fill(BGCOLOR)
-        # drawGrid()
-        drawWorm(playerCoords)
-        # drawApple(apple)
+        drawGrid()
+        drawPlayer(playerCoords)
+        drawBullets(bulletCoords)
         drawScore(len(playerCoords) - 3)
         pygame.display.update()
         FPSCLOCK.tick(FPS)
@@ -99,17 +97,6 @@ def drawPressKeyMsg():
     pressKeyRect = pressKeySurf.get_rect()
     pressKeyRect.topleft = (WINDOWWIDTH - 200, WINDOWHEIGHT - 30)
     DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
-
-def checkForKeyPress():
-    if len(pygame.event.get(QUIT)) > 0:
-        terminate()
-
-    keyUpEvents = pygame.event.get(KEYUP)
-    if len(keyUpEvents) == 0:
-        return None
-    if keyUpEvents[0].key == K_ESCAPE:
-        terminate()
-    return keyUpEvents[0].key
 
 def terminate():
     pygame.quit()
@@ -139,26 +126,35 @@ def showGameOverScreen():
             pygame.event.get() # clear event queue
             return
 
+def checkForKeyPress():
+    if len(pygame.event.get(QUIT)) > 0:
+        terminate()
+
+    keyUpEvents = pygame.event.get(KEYUP)
+    if len(keyUpEvents) == 0:
+        return None
+    if keyUpEvents[0].key == K_ESCAPE:
+        terminate()
+    return keyUpEvents[0].key
+
 def drawScore(score):
     scoreSurf = BASICFONT.render('Score: %s' % (score), True, WHITE)
     scoreRect = scoreSurf.get_rect()
     scoreRect.topleft = (WINDOWWIDTH - 120, 10)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
-def drawWorm(wormCoords):
-    for coord in wormCoords:
+def drawPlayer(playerCoords):
+    x = playerCoords['x'] * CELLSIZE
+    y = playerCoords['y'] * CELLSIZE
+    wormSegmentRect = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+    pygame.draw.rect(DISPLAYSURF, DARKGREEN, wormSegmentRect)
+
+def drawBullets(bulletCoords):
+    for coord in bulletCoords:
         x = coord['x'] * CELLSIZE
         y = coord['y'] * CELLSIZE
-        wormSegmentRect = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, DARKGREEN, wormSegmentRect)
-        wormInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELLSIZE - 8, CELLSIZE - 8)
-        pygame.draw.rect(DISPLAYSURF, GREEN, wormInnerSegmentRect)
-    
-def drawApple(coord):
-    x = coord['x'] * CELLSIZE
-    y = coord['y'] * CELLSIZE
-    appleRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
-    pygame.draw.rect(DISPLAYSURF, RED, appleRect)
+        Bullet = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, RED, Bullet)
 
 def drawGrid():
     for x in range(0, WINDOWWIDTH, CELLSIZE): # draw vertical lines
