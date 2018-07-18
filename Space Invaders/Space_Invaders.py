@@ -17,6 +17,7 @@ RED       = (255,   0,   0)
 GREEN     = (  0, 255,   0)
 DARKGREEN = (  0, 155,   0)
 DARKGRAY  = ( 40,  40,  40)
+YELLOW    = ( 239,255,  96)
 BGCOLOR = BLACK
 
 LEFT = 'left'
@@ -32,11 +33,9 @@ def main():
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('Space Invaders')
 
-    #showStartScreen()
     while True:
         runGame()
         showGameOverScreen()
-
 
 def runGame():
     # Set the player start point.
@@ -50,7 +49,7 @@ def runGame():
         for event in pygame.event.get(): # event handling loop
             if event.type == QUIT:
                 terminate()
-            elif event.type == KEYDOWN: #Signify which direction to move the player
+            elif event.type == KEYDOWN: # Signify which direction to move the player
                 if (event.key == K_LEFT or event.key == K_a):
                     direction = LEFT
                 elif (event.key == K_RIGHT or event.key == K_d):
@@ -58,21 +57,17 @@ def runGame():
                 elif event.key == K_ESCAPE:
                     terminate()
                 elif event.key == K_SPACE:
-                    bulletCoords.append({'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) #Add a bullet
+                    bulletCoords.append({'x': playerCoords['x'], 'y': playerCoords['y']}) #Add a bullet
             elif event.type == KEYUP: #Signify that the movement should stop
                 if (event.key == K_LEFT or event.key == K_a):
                     direction = NONE
                 elif (event.key == K_RIGHT or event.key == K_d):
-                    direction = NONE
-
-        # check if the player has hit itself or the edge
-        if playerCoords['x'] == -1 or playerCoords['x'] == CELLWIDTH:
-            return # game over      
+                    direction = NONE     
 
         # move the worm by adding a segment in the direction it is moving}
-        if direction == LEFT:
+        if direction == LEFT and playerCoords['x'] > 0:
             playerCoords['x'] = playerCoords['x'] - 1
-        elif direction == RIGHT:
+        elif direction == RIGHT and playerCoords['x'] < (WINDOWWIDTH / CELLSIZE) -  1:
             playerCoords['x'] = playerCoords['x'] + 1          
         
         # Move the bullets that exist
@@ -83,12 +78,11 @@ def runGame():
                 if coord['y'] < 0: #If the bullet has reached the end of the screen
                     bulletCoords.remove(coord) #Remove it
 
-
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
         drawPlayer(playerCoords)
         drawBullets(bulletCoords)
-        drawScore(len(playerCoords) - 3)
+        drawScore(playerCoords['x'])
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -146,15 +140,15 @@ def drawScore(score):
 def drawPlayer(playerCoords):
     x = playerCoords['x'] * CELLSIZE
     y = playerCoords['y'] * CELLSIZE
-    wormSegmentRect = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
-    pygame.draw.rect(DISPLAYSURF, DARKGREEN, wormSegmentRect)
+    Player = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+    pygame.draw.rect(DISPLAYSURF, DARKGREEN, Player)
 
 def drawBullets(bulletCoords):
     for coord in bulletCoords:
         x = coord['x'] * CELLSIZE
         y = coord['y'] * CELLSIZE
         Bullet = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, RED, Bullet)
+        pygame.draw.rect(DISPLAYSURF, YELLOW, Bullet)
 
 def drawGrid():
     for x in range(0, WINDOWWIDTH, CELLSIZE): # draw vertical lines
