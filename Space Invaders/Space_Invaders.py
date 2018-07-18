@@ -43,6 +43,7 @@ def runGame():
     starty = 45
     playerCoords = {'x': startx,     'y': starty}
     bulletCoords = []
+    alienCoords = CreateAliens()
     direction = NONE
 
     while True: # main game loop
@@ -78,10 +79,30 @@ def runGame():
                 if coord['y'] < 0: #If the bullet has reached the end of the screen
                     bulletCoords.remove(coord) #Remove it
 
+        #Move the aliens
+        if len(alienCoords) > 0:
+            MoveDown = False
+            MoveLeft = False
+            for alien in alienCoords:
+                if MoveLeft == False:
+                    x = 1         
+                else:
+                    x = -1
+
+                alienCoords[alienCoords.index(alien)] = {'x': alien['x'] + x, 'y': alien['y']}
+
+
+                test  = alienCoords[alienCoords.index(alien)]['x']
+                if alienCoords[alienCoords.index(alien)]['x'] < (WINDOWWIDTH / CELLSIZE) -  1:
+                    MoveLeft == True
+                if alienCoords[alienCoords.index(alien)]['x'] >  1:
+                    MoveLeft == False
+
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
         drawPlayer(playerCoords)
         drawBullets(bulletCoords)
+        drawAliens(alienCoords)
         drawScore(playerCoords['x'])
         pygame.display.update()
         FPSCLOCK.tick(FPS)
@@ -149,6 +170,25 @@ def drawBullets(bulletCoords):
         y = coord['y'] * CELLSIZE
         Bullet = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
         pygame.draw.rect(DISPLAYSURF, YELLOW, Bullet)
+
+def CreateAliens():
+    AlienCoords = []
+    Alien = {}
+
+    for y in range(int((WINDOWHEIGHT / CELLSIZE))):
+        for x in range(int((WINDOWWIDTH / CELLSIZE))):
+            if (x % 2) == 0 and (y % 2) == 0 and x > 1 and x < 64 and y < 20 and y > 0:
+                Alien = ({'x': x,     'y': y})
+                AlienCoords.append(Alien)
+
+    return AlienCoords
+
+def drawAliens(alienCoords):
+    for coord in alienCoords:
+        x = coord['x'] * CELLSIZE
+        y = coord['y'] * CELLSIZE
+        Alien = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, RED, Alien)
 
 def drawGrid():
     for x in range(0, WINDOWWIDTH, CELLSIZE): # draw vertical lines
