@@ -46,7 +46,8 @@ def runGame():
     # Set a random start point.
     startx = 5
     starty = 45
-    playerCoords = [{'x': startx,     'y': starty},]
+    playerCoords = [{'x': startx,     'y': starty}]
+    bulletCoords = []
     direction = NONE
 
     # Start the apple in a random place.
@@ -56,24 +57,22 @@ def runGame():
         for event in pygame.event.get(): # event handling loop
             if event.type == QUIT:
                 terminate()
-            elif event.type == KEYDOWN:
+            elif event.type == KEYDOWN: #Signify which direction to move the player
                 if (event.key == K_LEFT or event.key == K_a):
                     direction = LEFT
                 elif (event.key == K_RIGHT or event.key == K_d):
                     direction = RIGHT
-                #elif (event.key == K_UP or event.key == K_w) and direction != DOWN:
-                #    direction = UP
-                #elif (event.key == K_DOWN or event.key == K_s) and direction != UP:
-                #    direction = DOWN
                 elif event.key == K_ESCAPE:
                     terminate()
+            elif event.type == KEYUP: #Signify that the movement should stop
+                if (event.key == K_LEFT or event.key == K_a):
+                    direction = NONE
+                elif (event.key == K_RIGHT or event.key == K_d):
+                    direction = NONE
 
-        # check if the worm has hit itself or the edge
-        #if playerCoords[HEAD]['x'] == -1 or playerCoords[HEAD]['x'] == CELLWIDTH or playerCoords[HEAD]['y'] == -1 or playerCoords[HEAD]['y'] == CELLHEIGHT:
-        #    return # game over
-        #for wormBody in playerCoords[1:]:
-        #    if wormBody['x'] == playerCoords[HEAD]['x'] and wormBody['y'] == playerCoords[HEAD]['y']:
-        #        return # game over        
+        # check if the player has hit itself or the edge
+        if playerCoords[HEAD]['x'] == -1 or playerCoords[HEAD]['x'] == CELLWIDTH or playerCoords[HEAD]['y'] == -1 or playerCoords[HEAD]['y'] == CELLHEIGHT:
+            return # game over      
 
         # move the worm by adding a segment in the direction it is moving}
         if direction == LEFT:
@@ -85,14 +84,6 @@ def runGame():
         if direction != NONE:
             playerCoords.insert(0, newHead) # Move the player
             del playerCoords[-1] # Remove old player location            
-            direction = NONE # Signify the move is done
-
-        # check if worm has eaten an apple
-        #if playerCoords[HEAD]['x'] == apple['x'] and playerCoords[HEAD]['y'] == apple['y']:
-        #    # don't remove worm's tail segment
-        #    apple = getRandomLocation() # set a new apple somewhere
-        #else:
-        #    del playerCoords[-1] # remove worm's tail segment
         
 
         DISPLAYSURF.fill(BGCOLOR)
@@ -119,35 +110,6 @@ def checkForKeyPress():
     if keyUpEvents[0].key == K_ESCAPE:
         terminate()
     return keyUpEvents[0].key
-
-def showStartScreen():
-    titleFont = pygame.font.Font('freesansbold.ttf', 100)
-    titleSurf1 = titleFont.render('Wormy!', True, WHITE, DARKGREEN)
-    titleSurf2 = titleFont.render('Wormy!', True, GREEN)
-
-    degrees1 = 0
-    degrees2 = 0
-    while True:
-        DISPLAYSURF.fill(BGCOLOR)
-        rotatedSurf1 = pygame.transform.rotate(titleSurf1, degrees1)
-        rotatedRect1 = rotatedSurf1.get_rect()
-        rotatedRect1.center = (WINDOWWIDTH / 2, WINDOWHEIGHT / 2)
-        DISPLAYSURF.blit(rotatedSurf1, rotatedRect1)
-
-        rotatedSurf2 = pygame.transform.rotate(titleSurf2, degrees2)
-        rotatedRect2 = rotatedSurf2.get_rect()
-        rotatedRect2.center = (WINDOWWIDTH / 2, WINDOWHEIGHT / 2)
-        DISPLAYSURF.blit(rotatedSurf2, rotatedRect2)
-                         
-        drawPressKeyMsg()
-
-        if checkForKeyPress():
-            pygame.event.get() #Clear event queue
-            return
-        pygame.display.update()
-        FPSCLOCK.tick(FPS)
-        degrees1 += 3 #rotate by 3 degrees each frame
-        degrees2 += 7 #rotate by 7 degrees each frame
 
 def terminate():
     pygame.quit()
