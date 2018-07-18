@@ -1,11 +1,10 @@
-
 import random, pygame, sys
 from pygame.locals import *
 
 FPS = 15
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
-CELLSIZE = 20
+CELLSIZE = 10
 assert WINDOWWIDTH % CELLSIZE == 0, "Window width must be a multiple of cell size."
 assert WINDOWHEIGHT % CELLSIZE == 0, "Window height must be a multiple of cell size."
 CELLWIDTH = int(WINDOWWIDTH / CELLSIZE)
@@ -20,10 +19,11 @@ DARKGREEN = (  0, 155,   0)
 DARKGRAY  = ( 40,  40,  40)
 BGCOLOR = BLACK
 
-UP = 'up'
-DOWN = 'down'
+#UP = 'up'
+#DOWN = 'down'
 LEFT = 'left'
 RIGHT = 'right'
+NONE = 'none'
 
 HEAD = 0 # syntactic sugar: index of the worm's head
 
@@ -34,9 +34,9 @@ def main():
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
-    pygame.display.set_caption('Wormy')
+    pygame.display.set_caption('Space Invaders')
 
-    showStartScreen()
+    #showStartScreen()
     while True:
         runGame()
         showGameOverScreen()
@@ -44,61 +44,62 @@ def main():
 
 def runGame():
     # Set a random start point.
-    startx = random.randint(5, CELLWIDTH - 6)
-    starty = random.randint(5, CELLHEIGHT - 6)
-    wormCoords = [{'x': startx,     'y': starty},
-                  {'x': startx - 1, 'y': starty},
-                  {'x': startx - 2, 'y': starty}]
-    direction = RIGHT
+    startx = 5
+    starty = 45
+    playerCoords = [{'x': startx,     'y': starty},]
+    direction = NONE
 
     # Start the apple in a random place.
-    apple = getRandomLocation()
+    #apple = getRandomLocation()
 
     while True: # main game loop
         for event in pygame.event.get(): # event handling loop
             if event.type == QUIT:
                 terminate()
             elif event.type == KEYDOWN:
-                if (event.key == K_LEFT or event.key == K_a) and direction != RIGHT:
+                if (event.key == K_LEFT or event.key == K_a):
                     direction = LEFT
-                elif (event.key == K_RIGHT or event.key == K_d) and direction != LEFT:
+                elif (event.key == K_RIGHT or event.key == K_d):
                     direction = RIGHT
-                elif (event.key == K_UP or event.key == K_w) and direction != DOWN:
-                    direction = UP
-                elif (event.key == K_DOWN or event.key == K_s) and direction != UP:
-                    direction = DOWN
+                #elif (event.key == K_UP or event.key == K_w) and direction != DOWN:
+                #    direction = UP
+                #elif (event.key == K_DOWN or event.key == K_s) and direction != UP:
+                #    direction = DOWN
                 elif event.key == K_ESCAPE:
                     terminate()
 
         # check if the worm has hit itself or the edge
-        if wormCoords[HEAD]['x'] == -1 or wormCoords[HEAD]['x'] == CELLWIDTH or wormCoords[HEAD]['y'] == -1 or wormCoords[HEAD]['y'] == CELLHEIGHT:
-            return # game over
-        for wormBody in wormCoords[1:]:
-            if wormBody['x'] == wormCoords[HEAD]['x'] and wormBody['y'] == wormCoords[HEAD]['y']:
-                return # game over
+        #if playerCoords[HEAD]['x'] == -1 or playerCoords[HEAD]['x'] == CELLWIDTH or playerCoords[HEAD]['y'] == -1 or playerCoords[HEAD]['y'] == CELLHEIGHT:
+        #    return # game over
+        #for wormBody in playerCoords[1:]:
+        #    if wormBody['x'] == playerCoords[HEAD]['x'] and wormBody['y'] == playerCoords[HEAD]['y']:
+        #        return # game over        
+
+        # move the worm by adding a segment in the direction it is moving}
+        if direction == LEFT:
+            newHead = {'x': playerCoords[HEAD]['x'] - 1, 'y': playerCoords[HEAD]['y']} #Setup the Player Move
+        elif direction == RIGHT:
+            newHead = {'x': playerCoords[HEAD]['x'] + 1, 'y': playerCoords[HEAD]['y']} #Setup the Player Move
+
+
+        if direction != NONE:
+            playerCoords.insert(0, newHead) # Move the player
+            del playerCoords[-1] # Remove old player location            
+            direction = NONE # Signify the move is done
 
         # check if worm has eaten an apple
-        if wormCoords[HEAD]['x'] == apple['x'] and wormCoords[HEAD]['y'] == apple['y']:
-            # don't remove worm's tail segment
-            apple = getRandomLocation() # set a new apple somewhere
-        else:
-            del wormCoords[-1] # remove worm's tail segment
+        #if playerCoords[HEAD]['x'] == apple['x'] and playerCoords[HEAD]['y'] == apple['y']:
+        #    # don't remove worm's tail segment
+        #    apple = getRandomLocation() # set a new apple somewhere
+        #else:
+        #    del playerCoords[-1] # remove worm's tail segment
+        
 
-        # move the worm by adding a segment in the direction it is moving
-        if direction == UP:
-            newHead = {'x': wormCoords[HEAD]['x'], 'y': wormCoords[HEAD]['y'] - 1}
-        elif direction == DOWN:
-            newHead = {'x': wormCoords[HEAD]['x'], 'y': wormCoords[HEAD]['y'] + 1}
-        elif direction == LEFT:
-            newHead = {'x': wormCoords[HEAD]['x'] - 1, 'y': wormCoords[HEAD]['y']}
-        elif direction == RIGHT:
-            newHead = {'x': wormCoords[HEAD]['x'] + 1, 'y': wormCoords[HEAD]['y']}
-        wormCoords.insert(0, newHead)
         DISPLAYSURF.fill(BGCOLOR)
-        drawGrid()
-        drawWorm(wormCoords)
-        drawApple(apple)
-        drawScore(len(wormCoords) - 3)
+        # drawGrid()
+        drawWorm(playerCoords)
+        # drawApple(apple)
+        drawScore(len(playerCoords) - 3)
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -205,19 +206,3 @@ def drawGrid():
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
- 
