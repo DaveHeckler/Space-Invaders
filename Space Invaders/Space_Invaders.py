@@ -28,6 +28,12 @@ NONE = 'none'
 
 Score = 0
 
+class Bullet:
+    def __init__(self, color, direction, coords):
+        self.color = color
+        self.direction = direction
+        self.coords = coords
+
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
 
@@ -47,7 +53,7 @@ def runGame():
     starty = 45
     playerCoords = {'x': startx,     'y': starty}
     direction = NONE    
-    bulletCoords = [] 
+    bullets = [] 
 
     #Alien Vars
     alienCoords = CreateAliens()
@@ -70,14 +76,15 @@ def runGame():
                 elif event.key == K_ESCAPE:
                     terminate()
                 elif event.key == K_SPACE:
-                    bulletCoords.append({'x': playerCoords['x'], 'y': playerCoords['y']}) #Add a bullet
+                    bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y']}) #Create the bullet
+                    bullets.append(bullet) #Add to bullet list
             elif event.type == KEYUP: #Signify that the movement should stop
                 if (event.key == K_LEFT or event.key == K_a):
                     direction = NONE
                 elif (event.key == K_RIGHT or event.key == K_d):
                     direction = NONE     
 
-        alienCoords = CollisionDetection(alienCoords, bulletCoords)
+        alienCoords = CollisionDetection(alienCoords, bullets)
 
         # move the player
         if direction == LEFT and playerCoords['x'] > 0:
@@ -86,12 +93,12 @@ def runGame():
             playerCoords['x'] = playerCoords['x'] + 1          
         
         # Move the bullets that exist
-        if len(bulletCoords) > 0: # If there are bullets
-            for coord in bulletCoords: # Loop through the bullets
-                coord['y'] = coord['y'] - 1 # Move it up
+        if len(bullets) > 0: # If there are bullets
+            for bullet in bullets: # Loop through the bullets
+                bullet.coords['y'] = bullet.coords['y'] + bullet.direction # Move it up
 
-                if coord['y'] < 0: # If the bullet has reached the end of the screen
-                    bulletCoords.remove(coord) #Remove it
+                if bullet.coords['y'] < 0: # If the bullet has reached the end of the screen
+                    bullets.remove(bullet) #Remove it
 
         # Move the aliens
         if len(alienCoords) > 0 and alienWait == 0: #If wait is up and there are aliens
@@ -122,7 +129,7 @@ def runGame():
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
         drawPlayer(playerCoords)
-        drawBullets(bulletCoords)
+        drawBullets(bullets)
         drawAliens(alienCoords)
         drawScore()
         pygame.display.update()
@@ -189,12 +196,12 @@ def drawPlayer(playerCoords):
     pygame.draw.rect(DISPLAYSURF, DARKGREEN, Player)
     DISPLAYSURF.blit(PlayerImg, (x - 10, y))
     
-def drawBullets(bulletCoords):
-    for coord in bulletCoords:
-        x = coord['x'] * CELLSIZE
-        y = coord['y'] * CELLSIZE
-        Bullet = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, YELLOW, Bullet)
+def drawBullets(bullets):
+    for bullet in bullets:
+        x = bullet.coords['x'] * CELLSIZE
+        y = bullet.coords['y'] * CELLSIZE
+        BulletRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, bullet.color, BulletRec)
 
 def CreateAliens():
     #Setup the AlienCoord Datastructure
@@ -223,10 +230,10 @@ def drawGrid():
     for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
 
-def CollisionDetection(alienCoords, bulletCoords):
-    for Bulletcoord in bulletCoords: # Loop through all the bullets
-        Bulletx = Bulletcoord['x'] * CELLSIZE
-        Bullety = Bulletcoord['y'] * CELLSIZE 
+def CollisionDetection(alienCoords, bullets):
+    for bullet in bullets: # Loop through all the bullets
+        Bulletx = bullet.coords['x'] * CELLSIZE
+        Bullety = bullet.coords['y'] * CELLSIZE 
 
         for Aliencoord in alienCoords: # Loop through all the aliens
             Alienx = Aliencoord['x'] * CELLSIZE
@@ -234,7 +241,7 @@ def CollisionDetection(alienCoords, bulletCoords):
 
             if abs(Alienx - Bulletx) < 1 and abs(Alieny - Bullety) < 1: # Check if a bullet is on the same cell as an alien
                 alienCoords.remove(Aliencoord) # Kill alien
-                bulletCoords.remove(Bulletcoord) # Remove bullet
+                bullets.remove(bullet) # Remove bullet
                 global Score 
                 Score += 10 # 10 points Gryffindor!!!
 
