@@ -32,6 +32,7 @@ bullets = []
 alienCoords = []
 barricadeCoords = []
 Win = True;
+TotalAliens = 0
 
 class Bullet:
     def __init__(self, color, direction, coords):
@@ -71,6 +72,7 @@ def runGame():
     movedDown = False
     WaitAmount = 10 # Number of game loops to wait until moving the aliens
     alienWait = WaitAmount
+    CurrentAlienCount = 0
     x = 1
     y = 0
 
@@ -98,6 +100,13 @@ def runGame():
                     direction = NONE     
 
         CollisionDetection(alienCoords, bullets, playerCoords, barricadeCoords) #Do that collision detection magic!
+
+        if len(alienCoords) < (TotalAliens * .75):
+            WaitAmount = 9
+        if len(alienCoords) < (TotalAliens * .50):
+            WaitAmount = 8
+        if len(alienCoords) < (TotalAliens * .25):
+            WaitAmount = 6
 
         # move the player
         if direction == LEFT and playerCoords['x'] > 0:
@@ -135,6 +144,7 @@ def runGame():
                 movedDown = False
 
             alienWait = WaitAmount # Reset the timer
+            AlienShoot(alienCoords) # Have the aliens shoot
             AlienShoot(alienCoords)
         
         alienWait -= 1 # Count down for the alien timer
@@ -211,6 +221,8 @@ def CreateAliens():
             if (x % 2) == 0 and (y % 2) == 0 and x > 8 and x < 56 and y < 20 and y > 1: #Even cells only
                 Alien = ({'x': x,     'y': y}) #Create Alien
                 AlienCoords.append(Alien) #Add Alien to list
+                global TotalAliens
+                TotalAliens += 1
 
     return AlienCoords
 
