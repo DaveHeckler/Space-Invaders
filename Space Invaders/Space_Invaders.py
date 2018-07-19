@@ -79,6 +79,8 @@ def runGame():
                 elif event.key == K_SPACE:
                     bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y']}) #Create the bullet
                     bullets.append(bullet) #Add to bullet list
+                elif event.key == K_k:
+                   alienCoords.clear()
             elif event.type == KEYUP: #Signify that the movement should stop
                 if (event.key == K_LEFT or event.key == K_a):
                     direction = NONE
