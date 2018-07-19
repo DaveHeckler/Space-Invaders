@@ -24,6 +24,10 @@ LEFT = 'left'
 RIGHT = 'right'
 NONE = 'none'
 
+
+bulletCoords = [] 
+
+
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
 
@@ -42,8 +46,7 @@ def runGame():
     startx = 5
     starty = 45
     playerCoords = {'x': startx,     'y': starty}
-    direction = NONE
-    bulletCoords = []       
+    direction = NONE    
 
     #Alien Vars
     alienCoords = CreateAliens()
@@ -73,7 +76,9 @@ def runGame():
                 elif (event.key == K_RIGHT or event.key == K_d):
                     direction = NONE     
 
-        # move the worm by adding a segment in the direction it is moving}
+        alienCoords = CollisionDetection(alienCoords, bulletCoords)
+
+        # move the player
         if direction == LEFT and playerCoords['x'] > 0:
             playerCoords['x'] = playerCoords['x'] - 1
         elif direction == RIGHT and playerCoords['x'] < (WINDOWWIDTH / CELLSIZE) -  1:
@@ -212,6 +217,21 @@ def drawGrid():
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (x, 0), (x, WINDOWHEIGHT))
     for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
+
+def CollisionDetection(alienCoords, bulletCoords):
+    for Bulletcoord in bulletCoords:
+        Bulletx = Bulletcoord['x'] * CELLSIZE
+        Bullety = Bulletcoord['y'] * CELLSIZE
+
+        for Aliencoord in alienCoords:
+            Alienx = Aliencoord['x'] * CELLSIZE
+            Alieny = Aliencoord['y'] * CELLSIZE
+
+            if abs(Alienx - Bulletx) < 1 and abs(Alieny - Bullety) < 1:
+                alienCoords.remove(Aliencoord)
+                bulletCoords.remove(Bulletcoord)
+
+    return alienCoords
 
 if __name__ == '__main__':
     main()
