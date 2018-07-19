@@ -20,6 +20,7 @@ GREEN     = (  0, 255,   0)
 DARKGREEN = (  0, 155,   0)
 DARKGRAY  = ( 40,  40,  40)
 YELLOW    = ( 239,255,  96)
+BLUE      = (  66,194, 244)
 BGCOLOR = BLACK
 
 LEFT = 'left'
@@ -27,6 +28,7 @@ RIGHT = 'right'
 NONE = 'none'
 
 Score = 0
+bullets = []
 
 class Bullet:
     def __init__(self, color, direction, coords):
@@ -52,8 +54,7 @@ def runGame():
     startx = 5
     starty = 45
     playerCoords = {'x': startx,     'y': starty}
-    direction = NONE    
-    bullets = [] 
+    direction = NONE     
 
     #Alien Vars
     alienCoords = CreateAliens()
@@ -124,6 +125,8 @@ def runGame():
                 movedDown = False
 
             alienWait = WaitAmount # Reset the timer
+            AlienShoot(alienCoords)
+        
         alienWait -= 1 # Count down for the alien timer
 
         DISPLAYSURF.fill(BGCOLOR)
@@ -230,6 +233,28 @@ def drawGrid():
     for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
 
+#Could this be improved?????
+def AlienShoot(alienCoords):
+    Columns = []
+    LowestY = -1    
+
+    for alien in alienCoords: # Loop through aliens
+        alienX = alien['x'] * CELLSIZE # Get column value of each alien
+        if alienX not in Columns: # if the current column value hasnt been recorded
+            Columns.append(alienX) # add the current column to the list of clumns
+    
+    ShootingColumn = random.randint(0, len(Columns) - 1) # Pick a random column
+
+    for alien in alienCoords: # Loop again to find the bottom row
+        alienX = alien['x'] * CELLSIZE # get the column value of each alien
+        if alienX == Columns[ShootingColumn]: # if the current alien is in the select column
+            alienY = alien['y'] * CELLSIZE  # record current y value
+            if alienY > LowestY: # See if this is the lowest down alien we have seen
+                LowestY = alienY # This is the lowest down alien
+     
+    bullet = Bullet(BLUE, 1, {'x': Columns[ShootingColumn] / CELLSIZE, 'y': (LowestY / CELLSIZE) + 1}) # Create Alien bullet at the select column and the lowest down alien
+    bullets.append(bullet) # Add to bullet list
+        
 def CollisionDetection(alienCoords, bullets):
     for bullet in bullets: # Loop through all the bullets
         Bulletx = bullet.coords['x'] * CELLSIZE
