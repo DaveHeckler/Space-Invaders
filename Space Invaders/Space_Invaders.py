@@ -38,13 +38,21 @@ def main():
         showGameOverScreen()
 
 def runGame():
-    # Set the player start point.
+    #Player Vars
     startx = 5
     starty = 45
     playerCoords = {'x': startx,     'y': starty}
-    bulletCoords = []
-    alienCoords = CreateAliens()
     direction = NONE
+    bulletCoords = []       
+
+    #Alien Vars
+    alienCoords = CreateAliens()
+    changeDir = False
+    movedDown = False
+    WaitAmount = 10 #Number of game loops to wait until moving the aliens
+    alienWait = WaitAmount
+    x = 1
+    y = 0
 
     while True: # main game loop
         for event in pygame.event.get(): # event handling loop
@@ -76,27 +84,34 @@ def runGame():
             for coord in bulletCoords: # Loop through the bullets
                 coord['y'] = coord['y'] - 1 # Move it up
 
-                if coord['y'] < 0: #If the bullet has reached the end of the screen
+                if coord['y'] < 0: # If the bullet has reached the end of the screen
                     bulletCoords.remove(coord) #Remove it
 
-        #Move the aliens
-        if len(alienCoords) > 0:
-            MoveDown = False
-            MoveLeft = False
-            for alien in alienCoords:
-                if MoveLeft == False:
-                    x = 1         
-                else:
-                    x = -1
+        # Move the aliens
+        if len(alienCoords) > 0 and alienWait == 0: #If wait is up and there are aliens
+            if changeDir: # Aliens reached the end, move them down
+                prevx = x # Save old direction to flip later
+                x = 0 # Dont move left or right
+                y = 1 # Move down 1
+                movedDown = True
 
-                alienCoords[alienCoords.index(alien)] = {'x': alien['x'] + x, 'y': alien['y']}
+            for alien in alienCoords: # Loop through each alien
+                index  = alienCoords.index(alien) # Get the index of the current
+                alienCoords[alienCoords.index(alien)] = {'x': alien['x'] + x, 'y': alien['y'] + y} # Move the alien
+                
+                if alienCoords[index]['x'] > (WINDOWWIDTH / CELLSIZE) -  2: # Reached the end, signify a down and change direction
+                    changeDir = True
+                if alienCoords[index]['x'] <  1:
+                    changeDir = True
 
+            if movedDown: # Aliens have been moved down, now change their direction
+                x = prevx * -1 # Switch the x direction
+                y = 0 # Don't move down
+                changeDir = False
+                movedDown = False
 
-                test  = alienCoords[alienCoords.index(alien)]['x']
-                if alienCoords[alienCoords.index(alien)]['x'] < (WINDOWWIDTH / CELLSIZE) -  1:
-                    MoveLeft == True
-                if alienCoords[alienCoords.index(alien)]['x'] >  1:
-                    MoveLeft == False
+            alienWait = WaitAmount # Reset the timer
+        alienWait -= 1 # Count down for the alien timer
 
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
@@ -172,14 +187,16 @@ def drawBullets(bulletCoords):
         pygame.draw.rect(DISPLAYSURF, YELLOW, Bullet)
 
 def CreateAliens():
+    #Setup the AlienCoord Datastructure
     AlienCoords = []
     Alien = {}
 
+    #Loop through the portion of the window where there should be aliens
     for y in range(int((WINDOWHEIGHT / CELLSIZE))):
         for x in range(int((WINDOWWIDTH / CELLSIZE))):
-            if (x % 2) == 0 and (y % 2) == 0 and x > 1 and x < 64 and y < 20 and y > 0:
-                Alien = ({'x': x,     'y': y})
-                AlienCoords.append(Alien)
+            if (x % 2) == 0 and (y % 2) == 0 and x > 8 and x < 56 and y < 20 and y > 1: #Even cells only
+                Alien = ({'x': x,     'y': y}) #Create Alien
+                AlienCoords.append(Alien) #Add Alien to list
 
     return AlienCoords
 
