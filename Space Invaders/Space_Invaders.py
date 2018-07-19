@@ -39,6 +39,10 @@ class Bullet:
         self.direction = direction
         self.coords = coords
 
+class Alien:
+    def __init__(self, level):
+        self.level = level
+
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
 
@@ -49,6 +53,7 @@ def main():
     pygame.display.set_caption('Space Invaders')
 
     while True:
+        ClearAll()
         CreateBarricades()
         runGame()
         showGameOverScreen()
@@ -57,7 +62,7 @@ def runGame():
     # Player Vars
     startx = 5
     starty = 45
-    playerCoords = {'x': startx,     'y': starty}
+    playerCoords = {'x': startx, 'y': starty}
     direction = NONE     
 
     # Alien Vars
@@ -331,6 +336,11 @@ def CreateBarricades():
         barricadeCoords.append({'x': x + 6, 'y': 40})        
 
         x += 9
+
+def ClearAll():
+    bullets.clear()
+    alienCoords.clear()
+    barricadeCoords.clear()
 
 if __name__ == '__main__':
     main()
