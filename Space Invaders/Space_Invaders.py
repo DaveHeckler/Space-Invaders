@@ -19,8 +19,8 @@ RED       = (255,   0,   0)
 GREEN     = (  0, 255,   0)
 DARKGREEN = (  0, 155,   0)
 DARKGRAY  = ( 40,  40,  40)
-YELLOW    = ( 239,255,  96)
-BLUE      = (  66,194, 244)
+YELLOW    = (239, 255,  96)
+BLUE      = ( 66, 194, 244)
 BGCOLOR = BLACK
 
 LEFT = 'left'
@@ -30,6 +30,7 @@ NONE = 'none'
 Score = 0
 bullets = []
 alienCoords = []
+barricadeCoords = []
 Win = True;
 
 class Bullet:
@@ -48,6 +49,7 @@ def main():
     pygame.display.set_caption('Space Invaders')
 
     while True:
+        CreateBarricades()
         runGame()
         showGameOverScreen()
 
@@ -83,6 +85,7 @@ def runGame():
                     bullets.append(bullet) #Add to bullet list
                 elif event.key == K_k: # if 'k' is pressed 
                    alienCoords.clear() # kill those filthy aliens!
+                   bullets.clear()
             elif event.type == KEYUP: #Signify that the movement should stop
                 if (event.key == K_LEFT or event.key == K_a):
                     direction = NONE
@@ -103,7 +106,7 @@ def runGame():
                 bullet.coords['y'] = bullet.coords['y'] + bullet.direction # Move it up
 
                 if bullet.coords['y'] < 0: # If the bullet has reached the end of the screen
-                    bullets.remove(bullet) #Remove it
+                    bullets.remove(bullet) # Remove it
 
         # Move the aliens
         if len(alienCoords) > 0 and alienWait == 0: #If wait is up and there are aliens
@@ -133,6 +136,7 @@ def runGame():
 
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
+        drawBarricade(barricadeCoords)
         drawPlayer(playerCoords)
         drawBullets(bullets)
         drawAliens(alienCoords)
@@ -154,7 +158,6 @@ def terminate():
     sys.exit()
 
 def showGameOverScreen():
-    bullets.clear()
     top = 'Victory'
     bottom = 'Royale'
     if not Win:
@@ -190,27 +193,7 @@ def checkForKeyPress():
         return None
     if keyUpEvents[0].key == K_ESCAPE:
         terminate()
-    return keyUpEvents[0].key
-
-def drawScore():
-    scoreSurf = BASICFONT.render('Score: %s' % (Score), True, WHITE)
-    scoreRect = scoreSurf.get_rect()
-    scoreRect.topleft = (WINDOWWIDTH - 120, 10)
-    DISPLAYSURF.blit(scoreSurf, scoreRect)
-
-def drawPlayer(playerCoords):
-    x = playerCoords['x'] * CELLSIZE
-    y = playerCoords['y'] * CELLSIZE
-    Player = pygame.Rect(x,y, CELLSIZE, CELLSIZE)    
-    pygame.draw.rect(DISPLAYSURF, DARKGREEN, Player)
-    DISPLAYSURF.blit(PlayerImg, (x - 10, y))
-    
-def drawBullets(bullets):
-    for bullet in bullets:
-        x = bullet.coords['x'] * CELLSIZE
-        y = bullet.coords['y'] * CELLSIZE
-        BulletRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, bullet.color, BulletRec)
+    return keyUpEvents[0].key    
 
 def CreateAliens():
     #Setup the AlienCoord Datastructure
@@ -226,6 +209,14 @@ def CreateAliens():
 
     return AlienCoords
 
+
+def drawBullets(bullets):
+    for bullet in bullets:
+        x = bullet.coords['x'] * CELLSIZE
+        y = bullet.coords['y'] * CELLSIZE
+        BulletRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, bullet.color, BulletRec)
+
 def drawAliens(alienCoords):
     for coord in alienCoords: # for each alien
         x = coord['x'] * CELLSIZE # Multiply location by its cell size
@@ -238,6 +229,26 @@ def drawGrid():
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (x, 0), (x, WINDOWHEIGHT))
     for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
+
+def drawScore():
+    scoreSurf = BASICFONT.render('Score: %s' % (Score), True, WHITE)
+    scoreRect = scoreSurf.get_rect()
+    scoreRect.topleft = (WINDOWWIDTH - 120, 10)
+    DISPLAYSURF.blit(scoreSurf, scoreRect)
+
+def drawPlayer(playerCoords):
+    x = playerCoords['x'] * CELLSIZE
+    y = playerCoords['y'] * CELLSIZE
+    Player = pygame.Rect(x,y, CELLSIZE, CELLSIZE)    
+    pygame.draw.rect(DISPLAYSURF, DARKGREEN, Player)
+    DISPLAYSURF.blit(PlayerImg, (x - 10, y))
+
+def drawBarricade(barricadeCoords):
+    for coord in barricadeCoords: # for each barricade part
+        x = coord['x'] * CELLSIZE # Multiply location by its cell size
+        y = coord['y'] * CELLSIZE
+        barricadepart = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, WHITE, barricadepart)
 
 #Could this be improved?????
 def AlienShoot(alienCoords):
@@ -283,9 +294,13 @@ def CollisionDetection(alienCoords, bullets, playerCoords):
 
         if abs(Playerx - Bulletx) < 1 and abs(Playery - Bullety) < 1: # Check if a bullet is on the same cell as the player
             alienCoords.clear() # kill those filthy aliens to end the game
+            bullets.clear()
             global Win
-            Win = False
+            Win = False # You did not win
             break 
+
+def CreateBarricades():
+    barricadeCoords.append({'x': 3, 'y': 43})
 
 
 if __name__ == '__main__':
