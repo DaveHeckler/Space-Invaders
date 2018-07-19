@@ -24,9 +24,7 @@ LEFT = 'left'
 RIGHT = 'right'
 NONE = 'none'
 
-
-bulletCoords = [] 
-
+Score = 0
 
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
@@ -47,6 +45,7 @@ def runGame():
     starty = 45
     playerCoords = {'x': startx,     'y': starty}
     direction = NONE    
+    bulletCoords = [] 
 
     #Alien Vars
     alienCoords = CreateAliens()
@@ -123,7 +122,7 @@ def runGame():
         drawPlayer(playerCoords)
         drawBullets(bulletCoords)
         drawAliens(alienCoords)
-        drawScore(playerCoords['x'])
+        drawScore()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -172,8 +171,8 @@ def checkForKeyPress():
         terminate()
     return keyUpEvents[0].key
 
-def drawScore(score):
-    scoreSurf = BASICFONT.render('Score: %s' % (score), True, WHITE)
+def drawScore():
+    scoreSurf = BASICFONT.render('Score: %s' % (Score), True, WHITE)
     scoreRect = scoreSurf.get_rect()
     scoreRect.topleft = (WINDOWWIDTH - 120, 10)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
@@ -206,8 +205,8 @@ def CreateAliens():
     return AlienCoords
 
 def drawAliens(alienCoords):
-    for coord in alienCoords:
-        x = coord['x'] * CELLSIZE
+    for coord in alienCoords: #for each alien
+        x = coord['x'] * CELLSIZE #Multiply location by its cell size
         y = coord['y'] * CELLSIZE
         Alien = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
         pygame.draw.rect(DISPLAYSURF, RED, Alien)
@@ -219,17 +218,18 @@ def drawGrid():
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
 
 def CollisionDetection(alienCoords, bulletCoords):
-    for Bulletcoord in bulletCoords:
+    for Bulletcoord in bulletCoords: # Loop through all the bullets
         Bulletx = Bulletcoord['x'] * CELLSIZE
-        Bullety = Bulletcoord['y'] * CELLSIZE
+        Bullety = Bulletcoord['y'] * CELLSIZE 
 
-        for Aliencoord in alienCoords:
+        for Aliencoord in alienCoords: # Loop through all the aliens
             Alienx = Aliencoord['x'] * CELLSIZE
             Alieny = Aliencoord['y'] * CELLSIZE
 
-            if abs(Alienx - Bulletx) < 1 and abs(Alieny - Bullety) < 1:
-                alienCoords.remove(Aliencoord)
-                bulletCoords.remove(Bulletcoord)
+            if abs(Alienx - Bulletx) < 1 and abs(Alieny - Bullety) < 1: # Check if a bullet is on the same cell as an alien
+                alienCoords.remove(Aliencoord) # Kill alien
+                bulletCoords.remove(Bulletcoord) # Remove bullet
+                Score += 10 # 10 points Griffendore!!!
 
     return alienCoords
 
