@@ -92,7 +92,7 @@ def runGame():
                 elif (event.key == K_RIGHT or event.key == K_d):
                     direction = NONE     
 
-        CollisionDetection(alienCoords, bullets, playerCoords) #Do that collision detection magic!
+        CollisionDetection(alienCoords, bullets, playerCoords, barricadeCoords) #Do that collision detection magic!
 
         # move the player
         if direction == LEFT and playerCoords['x'] > 0:
@@ -272,7 +272,7 @@ def AlienShoot(alienCoords):
     bullet = Bullet(BLUE, 1, {'x': Columns[ShootingColumn] / CELLSIZE, 'y': (LowestY / CELLSIZE) + 1}) # Create Alien bullet at the select column and the lowest down alien
     bullets.append(bullet) # Add to bullet list
         
-def CollisionDetection(alienCoords, bullets, playerCoords):
+def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
     for bullet in bullets: # Loop through all the bullets
         Bulletx = bullet.coords['x'] * CELLSIZE
         Bullety = bullet.coords['y'] * CELLSIZE 
@@ -287,6 +287,13 @@ def CollisionDetection(alienCoords, bullets, playerCoords):
                 global Score 
                 Score += 10 # 10 points Gryffindor!!!
 
+        for barricade in barricades: # Loop through all the barricades
+            barrx = barricade['x'] * CELLSIZE
+            barry = barricade['y'] * CELLSIZE
+
+            if abs(barrx - Bulletx) < 1 and abs(barry - Bullety) < 1: # Check if a bullet is on the same cell as a barricade part
+                barricades.remove(barricade) # remove barricade
+                bullets.remove(bullet) # Remove bullet
 
         #Get the player location
         Playerx = playerCoords['x'] * CELLSIZE 
@@ -300,8 +307,30 @@ def CollisionDetection(alienCoords, bullets, playerCoords):
             break 
 
 def CreateBarricades():
-    barricadeCoords.append({'x': 3, 'y': 43})
+    x = 1
+    while x < 70:
+        barricadeCoords.append({'x': x + 2, 'y': 43})
+        barricadeCoords.append({'x': x + 2, 'y': 42})
+        barricadeCoords.append({'x': x + 2, 'y': 41})
+        barricadeCoords.append({'x': x + 2, 'y': 40})
+        barricadeCoords.append({'x': x + 3, 'y': 42})
+        barricadeCoords.append({'x': x + 3, 'y': 41})
+        barricadeCoords.append({'x': x + 3, 'y': 40})
+        barricadeCoords.append({'x': x + 3, 'y': 39})
+        barricadeCoords.append({'x': x + 4, 'y': 42})
+        barricadeCoords.append({'x': x + 4, 'y': 41})
+        barricadeCoords.append({'x': x + 4, 'y': 40})
+        barricadeCoords.append({'x': x + 4, 'y': 39})
+        barricadeCoords.append({'x': x + 5, 'y': 42})
+        barricadeCoords.append({'x': x + 5, 'y': 41})
+        barricadeCoords.append({'x': x + 5, 'y': 40})
+        barricadeCoords.append({'x': x + 5, 'y': 39})
+        barricadeCoords.append({'x': x + 6, 'y': 43})
+        barricadeCoords.append({'x': x + 6, 'y': 42})
+        barricadeCoords.append({'x': x + 6, 'y': 41})
+        barricadeCoords.append({'x': x + 6, 'y': 40})        
 
+        x += 9
 
 if __name__ == '__main__':
     main()
