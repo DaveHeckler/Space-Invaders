@@ -189,7 +189,6 @@ def drawPlayer(playerCoords):
     pygame.draw.rect(DISPLAYSURF, DARKGREEN, Player)
     DISPLAYSURF.blit(PlayerImg, (x - 10, y))
     
-
 def drawBullets(bulletCoords):
     for coord in bulletCoords:
         x = coord['x'] * CELLSIZE
