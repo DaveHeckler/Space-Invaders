@@ -229,6 +229,7 @@ def CollisionDetection(alienCoords, bulletCoords):
             if abs(Alienx - Bulletx) < 1 and abs(Alieny - Bullety) < 1: # Check if a bullet is on the same cell as an alien
                 alienCoords.remove(Aliencoord) # Kill alien
                 bulletCoords.remove(Bulletcoord) # Remove bullet
+                global Score 
                 Score += 10 # 10 points Griffendore!!!
 
     return alienCoords
