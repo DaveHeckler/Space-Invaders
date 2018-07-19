@@ -1,6 +1,8 @@
 import random, pygame, sys
 from pygame.locals import *
 
+PlayerImg = pygame.image.load("player.png")
+
 FPS = 15
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
@@ -126,6 +128,9 @@ def runGame():
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
+        if len(alienCoords) == 0:
+            break
+
 def drawPressKeyMsg():
     pressKeySurf = BASICFONT.render('Press a key to play.', True, DARKGRAY)
     pressKeyRect = pressKeySurf.get_rect()
@@ -141,8 +146,8 @@ def getRandomLocation():
 
 def showGameOverScreen():
     gameOverFont = pygame.font.Font('freesansbold.ttf', 150)
-    gameSurf = gameOverFont.render('Game', True, WHITE)
-    overSurf = gameOverFont.render('Over', True, WHITE)
+    gameSurf = gameOverFont.render('Victory', True, WHITE)
+    overSurf = gameOverFont.render('Royale', True, WHITE)
     gameRect = gameSurf.get_rect()
     overRect = overSurf.get_rect()
     gameRect.midtop = (WINDOWWIDTH / 2, 10)
@@ -180,8 +185,10 @@ def drawScore():
 def drawPlayer(playerCoords):
     x = playerCoords['x'] * CELLSIZE
     y = playerCoords['y'] * CELLSIZE
-    Player = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+    Player = pygame.Rect(x,y, CELLSIZE, CELLSIZE)    
     pygame.draw.rect(DISPLAYSURF, DARKGREEN, Player)
+    DISPLAYSURF.blit(PlayerImg, (x - 10, y))
+    
 
 def drawBullets(bulletCoords):
     for coord in bulletCoords:
@@ -205,8 +212,8 @@ def CreateAliens():
     return AlienCoords
 
 def drawAliens(alienCoords):
-    for coord in alienCoords: #for each alien
-        x = coord['x'] * CELLSIZE #Multiply location by its cell size
+    for coord in alienCoords: # for each alien
+        x = coord['x'] * CELLSIZE # Multiply location by its cell size
         y = coord['y'] * CELLSIZE
         Alien = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
         pygame.draw.rect(DISPLAYSURF, RED, Alien)
@@ -230,7 +237,7 @@ def CollisionDetection(alienCoords, bulletCoords):
                 alienCoords.remove(Aliencoord) # Kill alien
                 bulletCoords.remove(Bulletcoord) # Remove bullet
                 global Score 
-                Score += 10 # 10 points Griffendore!!!
+                Score += 10 # 10 points Gryffindor!!!
 
     return alienCoords
 
