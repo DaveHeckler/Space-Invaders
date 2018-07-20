@@ -1,4 +1,4 @@
-import random, pygame, sys
+import random, pygame, sys, time
 from pygame.locals import *
 
 PlayerImg = pygame.image.load("player.png")
@@ -33,6 +33,8 @@ alienCoords = []
 barricadeCoords = []
 Win = True;
 TotalAliens = 0
+AlienLowest = 19 # Hard coded, not good
+AlienHighest = 2
 
 class Bullet:
     def __init__(self, color, direction, coords):
@@ -87,7 +89,7 @@ def runGame():
                     direction = RIGHT
                 elif event.key == K_ESCAPE:
                     terminate()
-                elif event.key == K_SPACE:
+                elif event.key == K_SPACE:                    
                     bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) #Create the bullet
                     bullets.append(bullet) #Add to bullet list
                 elif event.key == K_k: # if 'k' is pressed 
@@ -99,8 +101,11 @@ def runGame():
                 elif (event.key == K_RIGHT or event.key == K_d):
                     direction = NONE     
 
+        start = time.time()
         CollisionDetection(alienCoords, bullets, playerCoords, barricadeCoords) #Do that collision detection magic!
-
+        end = time.time()
+        print(end - start)
+        
         if len(alienCoords) < (TotalAliens * .75):
             WaitAmount = 9
         if len(alienCoords) < (TotalAliens * .50):
@@ -119,7 +124,7 @@ def runGame():
             for bullet in bullets: # Loop through the bullets
                 bullet.coords['y'] = bullet.coords['y'] + bullet.direction # Move it up
 
-                if bullet.coords['y'] < 0: # If the bullet has reached the end of the screen
+                if bullet.coords['y'] < 0 or bullet.coords['y'] > 48: # If the bullet has reached the end of the screen
                     bullets.remove(bullet) # Remove it
 
         # Move the aliens
@@ -140,6 +145,10 @@ def runGame():
             if movedDown: # Aliens have been moved down, now change their direction
                 x = prevx * -1 # Switch the x direction
                 y = 0 # Don't move down
+                global AlienLowest
+                AlienLowest += 1
+                global AlienHighest
+                AlienHighest += 1
                 changeDir = False
                 movedDown = False
 
@@ -177,7 +186,7 @@ def showGameOverScreen():
     bottom = 'Royale'
     if not Win:
         top = 'You'
-        bottom = 'died'
+        bottom = 'Died'
 
     gameOverFont = pygame.font.Font('freesansbold.ttf', 150)
     gameSurf = gameOverFont.render(top, True, WHITE)
@@ -285,43 +294,46 @@ def AlienShoot(alienCoords):
             alienY = alien['y'] * CELLSIZE  # record current y value
             if alienY > LowestY: # See if this is the lowest down alien we have seen
                 LowestY = alienY # This is the lowest down alien
-     
+
     bullet = Bullet(BLUE, 1, {'x': Columns[ShootingColumn] / CELLSIZE, 'y': (LowestY / CELLSIZE) + 1}) # Create Alien bullet at the select column and the lowest down alien
     bullets.append(bullet) # Add to bullet list
         
 def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
     for bullet in bullets: # Loop through all the bullets
-        Bulletx = bullet.coords['x'] * CELLSIZE
-        Bullety = bullet.coords['y'] * CELLSIZE 
+        Bulletx = bullet.coords['x']
+        Bullety = bullet.coords['y']
 
-        for Aliencoord in alienCoords: # Loop through all the aliens
-            Alienx = Aliencoord['x'] * CELLSIZE
-            Alieny = Aliencoord['y'] * CELLSIZE
+        if Bullety < AlienLowest and Bullety > AlienHighest:
+            for Aliencoord in alienCoords: # Loop through all the aliens
+                Alienx = Aliencoord['x']
+                Alieny = Aliencoord['y']
 
-            if abs(Alienx - Bulletx) < 1 and abs(Alieny - Bullety) < 1: # Check if a bullet is on the same cell as an alien
-                alienCoords.remove(Aliencoord) # Kill alien
-                bullets.remove(bullet) # Remove bullet
-                global Score 
-                Score += 10 # 10 points Gryffindor!!!
+                if abs(Alienx - Bulletx) < 1 and abs(Alieny - Bullety) < 1: # Check if a bullet is on the same cell as an alien
+                    alienCoords.remove(Aliencoord) # Kill alien
+                    bullets.remove(bullet) # Remove bullet
+                    global Score 
+                    Score += 10 # 10 points Gryffindor!!!
 
-        for barricade in barricades: # Loop through all the barricades
-            barrx = barricade['x'] * CELLSIZE
-            barry = barricade['y'] * CELLSIZE
+        if Bullety > 38 and Bullety < 44:
+            for barricade in barricades: # Loop through all the barricades
+                barrx = barricade['x']
+                barry = barricade['y']
 
-            if abs(barrx - Bulletx) < 1 and abs(barry - Bullety) < 1: # Check if a bullet is on the same cell as a barricade part
-                barricades.remove(barricade) # remove barricade
-                bullets.remove(bullet) # Remove bullet
+                if abs(barrx - Bulletx) < 1 and abs(barry - Bullety) < 1: # Check if a bullet is on the same cell as a barricade part
+                    barricades.remove(barricade) # remove barricade
+                    bullets.remove(bullet) # Remove bullet
 
         #Get the player location
-        Playerx = playerCoords['x'] * CELLSIZE 
-        Playery = playerCoords['y'] * CELLSIZE
+        Playerx = playerCoords['x'] 
+        Playery = playerCoords['y']
 
-        if abs(Playerx - Bulletx) < 1 and abs(Playery - Bullety) < 1: # Check if a bullet is on the same cell as the player
-            alienCoords.clear() # kill those filthy aliens to end the game
-            bullets.clear()
-            global Win
-            Win = False # You did not win
-            break 
+        if Bullety == 45:
+            if abs(Playerx - Bulletx) < 1 and abs(Playery - Bullety) < 1: # Check if a bullet is on the same cell as the player
+                alienCoords.clear() # kill those filthy aliens to end the game
+                bullets.clear()
+                global Win
+                Win = False # You did not win
+                break 
 
 def CreateBarricades():
     x = 1
