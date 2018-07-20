@@ -22,6 +22,7 @@ DARKGREEN = (  0, 155,   0)
 DARKGRAY  = ( 40,  40,  40)
 YELLOW    = (239, 255,  96)
 BLUE      = ( 66, 194, 244)
+PURPLE    = (185,  66, 244)
 BGCOLOR = BLACK
 
 #Ditch?
@@ -50,9 +51,19 @@ class Bullet:
         self.coords = coords
 
 class Alien:
-    def __init__(self, level, coords):
+    def __init__(self, level, coords, color):
         self.level = level
         self.coords = coords
+        self.color = color
+
+    def LowerLevel(self):
+        self.level = self.level - 1
+        
+        if self.level == 1:
+            self.color = RED
+        elif self.level == 2:
+            self.color = PURPLE
+
 
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
@@ -116,7 +127,7 @@ def runGame():
         
         if len(aliens) < (TotalAliens * .75):
             WaitAmount = 9
-        if len(aliens) < (TotalAliens * .50):
+        if len(aliens) < (TotalAliens * .50): 
             WaitAmount = 8
         if len(aliens) < (TotalAliens * .25):
             WaitAmount = 6
@@ -168,8 +179,8 @@ def runGame():
             AlienShoot(aliens) # Shoot again
         
         alienWait -= 1 # Count down for the alien timer
-        
-        #Draw Everything!
+         
+         #Draw Everything!
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
         drawBarricade(barricadeCoords)
@@ -241,12 +252,17 @@ def CreateAliens():
     # Setup the AlienCoord Datastructure (List of objects)
     Aliens = []
     alien = {}
-
+    lvl = 2
+    color = PURPLE
     # Loop through the portion of the window where there should be aliens
     for y in range(int((WINDOWHEIGHT / CELLSIZE))):
         for x in range(int((WINDOWWIDTH / CELLSIZE))):
             if (x % 2) == 0 and (y % 2) == 0 and x > 8 and x < 56 and y < 20 and y > 1: # Even cells only
-                alien = Alien(1, {'x': x,     'y': y}) #Create Alien
+                if y != 2:
+                    lvl = 1
+                    color = RED                
+
+                alien = Alien(lvl, {'x': x,'y': y}, color) # Create Alien
                 Aliens.append(alien) #Add Alien to list
 
     # Record the top and bottom of the aliens, used for collision detection
@@ -269,8 +285,8 @@ def drawAliens(aliens):
     for alien in aliens: # for each alien
         x = alien.coords['x'] * CELLSIZE # Multiply location by its cell size
         y = alien.coords['y'] * CELLSIZE
-        alien = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, RED, alien)
+        alienRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, alien.color, alienRec)
 
 def drawGrid():
     for x in range(0, WINDOWWIDTH, CELLSIZE): # draw vertical lines
@@ -340,7 +356,10 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
                 Alieny = alien.coords['y']
 
                 if abs(Alienx - Bulletx) < 1 and abs(Alieny - Bullety) < 1: # Check if a bullet is on the same cell as an alien
-                    aliens.remove(alien) # Kill alien
+                    if alien.level > 1:
+                        alien.LowerLevel()
+                    else:
+                        aliens.remove(alien) # Kill alien
                     bullets.remove(bullet) # Remove bullet
                     global Score 
                     Score += 10 # 10 points Gryffindor!!!
