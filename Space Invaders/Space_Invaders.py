@@ -3,7 +3,8 @@ from pygame.locals import *
 
 PlayerImg = pygame.image.load("player.png")
 
-FPS = 15
+#FPS = 15
+FPS = 60
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
 CELLSIZE = 10
@@ -152,9 +153,13 @@ def runGame():
                 changeDir = False
                 movedDown = False
 
+                if AlienLowest > 38:
+                    lose()
+                    break
+
             alienWait = WaitAmount # Reset the timer
-            AlienShoot(alienCoords) # Have the aliens shoot
-            AlienShoot(alienCoords) # Shoot again
+            #AlienShoot(alienCoords) # Have the aliens shoot
+            #AlienShoot(alienCoords) # Shoot again
         
         alienWait -= 1 # Count down for the alien timer
 
@@ -335,10 +340,7 @@ def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
             Playerx = playerCoords['x'] 
             Playery = playerCoords['y']
             if abs(Playerx - Bulletx) < 1 and abs(Playery - Bullety) < 1: # Check if a bullet is on the same cell as the player
-                alienCoords.clear() # kill those filthy aliens to end the game
-                bullets.clear()
-                global Win
-                Win = False # You did not win
+                lose()
                 break 
 
 def CreateBarricades():
@@ -371,6 +373,12 @@ def ClearAll():
     bullets.clear()
     alienCoords.clear()
     barricadeCoords.clear()
+
+def lose():
+    alienCoords.clear() # kill those filthy aliens to end the game
+    bullets.clear()
+    global Win
+    Win = False # You did not win
 
 if __name__ == '__main__':
     main()
