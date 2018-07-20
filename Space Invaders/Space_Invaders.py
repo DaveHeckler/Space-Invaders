@@ -32,9 +32,8 @@ bullets = []
 alienCoords = []
 barricadeCoords = []
 Win = True;
-TotalAliens = 0
-AlienLowest = 19 # Hard coded, not good
-AlienHighest = 1
+AlienLowest = -1
+AlienHighest = -1
 
 class Bullet:
     def __init__(self, color, direction, coords):
@@ -107,6 +106,7 @@ def runGame():
         end = time.time()
         print(end - start)
         
+        TotalAliens = len(alienCoords)
         if len(alienCoords) < (TotalAliens * .75):
             WaitAmount = 9
         if len(alienCoords) < (TotalAliens * .50):
@@ -154,7 +154,7 @@ def runGame():
                 movedDown = False
 
                 if AlienLowest > 38:
-                    lose()
+                    lose(alienCoords)
                     break
 
             alienWait = WaitAmount # Reset the timer
@@ -235,8 +235,11 @@ def CreateAliens():
             if (x % 2) == 0 and (y % 2) == 0 and x > 8 and x < 56 and y < 20 and y > 1: #Even cells only
                 Alien = ({'x': x,     'y': y}) #Create Alien
                 AlienCoords.append(Alien) #Add Alien to list
-                global TotalAliens
-                TotalAliens += 1
+
+    global AlienHighest
+    global AlienLowest
+    AlienHighest = AlienCoords[1]['y']
+    AlienLowest = AlienCoords[-1]['y']
 
     return AlienCoords
 
@@ -311,7 +314,7 @@ def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
         Bullety = bullet.coords['y']
 
         #Check if bullet is in range of aliens        
-        if Bullety < AlienLowest and Bullety >= AlienHighest:
+        if Bullety <= AlienLowest and Bullety >= AlienHighest:
             for Aliencoord in alienCoords: # Loop through all the aliens
                 Alienx = Aliencoord['x']
                 Alieny = Aliencoord['y']
@@ -339,10 +342,7 @@ def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
             Playerx = playerCoords['x'] 
             Playery = playerCoords['y']
             if abs(Playerx - Bulletx) < 1 and abs(Playery - Bullety) < 1: # Check if a bullet is on the same cell as the player
-                alienCoords.clear() # kill those filthy aliens to end the game
-                bullets.clear()
-                global Win
-                Win = False # You did not win
+                lose(alienCoords)
                 break 
 
 def CreateBarricades():
@@ -376,7 +376,7 @@ def ClearAll():
     alienCoords.clear()
     barricadeCoords.clear()
 
-def lose():
+def lose(alienCoords):
     alienCoords.clear() # kill those filthy aliens to end the game
     bullets.clear()
     global Win
