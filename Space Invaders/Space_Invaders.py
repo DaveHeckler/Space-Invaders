@@ -154,7 +154,7 @@ def runGame():
 
             alienWait = WaitAmount # Reset the timer
             AlienShoot(alienCoords) # Have the aliens shoot
-            AlienShoot(alienCoords)
+            AlienShoot(alienCoords) # Shoot again
         
         alienWait -= 1 # Count down for the alien timer
 
@@ -256,7 +256,7 @@ def drawGrid():
     for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
 
-    pygame.draw.line(DISPLAYSURF, RED, (0, (39 * CELLSIZE)), (WINDOWWIDTH, (39 * CELLSIZE)))
+    pygame.draw.line(DISPLAYSURF, RED, (0, (38 * CELLSIZE)), (WINDOWWIDTH, (38 * CELLSIZE)))
 
 def drawScore():
     scoreSurf = BASICFONT.render('Score: %s' % (Score), True, WHITE)
@@ -305,6 +305,7 @@ def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
         Bulletx = bullet.coords['x']
         Bullety = bullet.coords['y']
 
+        #Check if bullet is in range of aliens        
         if Bullety < AlienLowest and Bullety >= AlienHighest:
             for Aliencoord in alienCoords: # Loop through all the aliens
                 Alienx = Aliencoord['x']
@@ -315,8 +316,10 @@ def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
                     bullets.remove(bullet) # Remove bullet
                     global Score 
                     Score += 10 # 10 points Gryffindor!!!
+                    break
 
-        if Bullety > 38 and Bullety < 44:
+        #Check if bullet is in range of barricades
+        elif Bullety > 38 and Bullety < 44:
             for barricade in barricades: # Loop through all the barricades
                 barrx = barricade['x']
                 barry = barricade['y']
@@ -324,12 +327,13 @@ def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
                 if abs(barrx - Bulletx) < 1 and abs(barry - Bullety) < 1: # Check if a bullet is on the same cell as a barricade part
                     barricades.remove(barricade) # remove barricade
                     bullets.remove(bullet) # Remove bullet
+                    break
 
-        #Get the player location
-        Playerx = playerCoords['x'] 
-        Playery = playerCoords['y']
-
-        if Bullety == 45:
+        #Check if bullet is in range of player
+        elif Bullety == 45:
+            #Get the player location
+            Playerx = playerCoords['x'] 
+            Playery = playerCoords['y']
             if abs(Playerx - Bulletx) < 1 and abs(Playery - Bullety) < 1: # Check if a bullet is on the same cell as the player
                 alienCoords.clear() # kill those filthy aliens to end the game
                 bullets.clear()
