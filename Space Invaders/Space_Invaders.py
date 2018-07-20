@@ -34,7 +34,7 @@ barricadeCoords = []
 Win = True;
 TotalAliens = 0
 AlienLowest = 19 # Hard coded, not good
-AlienHighest = 2
+AlienHighest = 1
 
 class Bullet:
     def __init__(self, color, direction, coords):
@@ -256,6 +256,8 @@ def drawGrid():
     for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
 
+    pygame.draw.line(DISPLAYSURF, RED, (0, (39 * CELLSIZE)), (WINDOWWIDTH, (39 * CELLSIZE)))
+
 def drawScore():
     scoreSurf = BASICFONT.render('Score: %s' % (Score), True, WHITE)
     scoreRect = scoreSurf.get_rect()
@@ -303,7 +305,7 @@ def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
         Bulletx = bullet.coords['x']
         Bullety = bullet.coords['y']
 
-        if Bullety < AlienLowest and Bullety > AlienHighest:
+        if Bullety < AlienLowest and Bullety >= AlienHighest:
             for Aliencoord in alienCoords: # Loop through all the aliens
                 Alienx = Aliencoord['x']
                 Alieny = Aliencoord['y']
