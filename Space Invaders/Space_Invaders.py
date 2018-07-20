@@ -63,9 +63,7 @@ def main():
 
 def runGame():
     # Player Vars
-    startx = 5
-    starty = 45
-    playerCoords = {'x': startx, 'y': starty}
+    playerCoords = {'x': 5, 'y': 45}
     direction = NONE     
 
     # Alien Vars
@@ -90,22 +88,22 @@ def runGame():
                 elif event.key == K_ESCAPE:
                     terminate()
                 elif event.key == K_SPACE:                    
-                    bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) #Create the bullet
+                    bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) # Create the bullet
                     bullets.append(bullet) #Add to bullet list
                 elif event.key == K_k: # if 'k' is pressed 
                    alienCoords.clear() # kill those filthy aliens!
                    bullets.clear()
-            elif event.type == KEYUP: #Signify that the movement should stop
+            elif event.type == KEYUP: # Signify that the movement should stop
                 if (event.key == K_LEFT or event.key == K_a):
                     direction = NONE
                 elif (event.key == K_RIGHT or event.key == K_d):
                     direction = NONE     
 
         start = time.time()
-        CollisionDetection(alienCoords, bullets, playerCoords, barricadeCoords) #Do that collision detection magic!
+        CollisionDetection(alienCoords, bullets, playerCoords, barricadeCoords) # Do that collision detection magic!
         end = time.time()
-        print(end - start)
-        
+        print('Collision detection time: ' + str(end - start))       
+
         TotalAliens = len(alienCoords)
         if len(alienCoords) < (TotalAliens * .75):
             WaitAmount = 9
@@ -162,6 +160,7 @@ def runGame():
             AlienShoot(alienCoords) # Shoot again
         
         alienWait -= 1 # Count down for the alien timer
+        
 
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
@@ -189,6 +188,7 @@ def terminate():
 def showGameOverScreen():
     top = 'Victory'
     bottom = 'Royale'
+
     if not Win:
         top = 'You'
         bottom = 'Died'
@@ -225,17 +225,18 @@ def checkForKeyPress():
     return keyUpEvents[0].key    
 
 def CreateAliens():
-    #Setup the AlienCoord Datastructure
+    # Setup the AlienCoord Datastructure (List of Dictionaries)
     AlienCoords = []
     Alien = {}
 
-    #Loop through the portion of the window where there should be aliens
+    # Loop through the portion of the window where there should be aliens
     for y in range(int((WINDOWHEIGHT / CELLSIZE))):
         for x in range(int((WINDOWWIDTH / CELLSIZE))):
-            if (x % 2) == 0 and (y % 2) == 0 and x > 8 and x < 56 and y < 20 and y > 1: #Even cells only
+            if (x % 2) == 0 and (y % 2) == 0 and x > 8 and x < 56 and y < 20 and y > 1: # Even cells only
                 Alien = ({'x': x,     'y': y}) #Create Alien
                 AlienCoords.append(Alien) #Add Alien to list
 
+    # Record the top and bottom of the aliens, used for collision detection
     global AlienHighest
     global AlienLowest
     AlienHighest = AlienCoords[1]['y']
