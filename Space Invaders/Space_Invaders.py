@@ -57,8 +57,9 @@ class Alien:
         self.color = color
 
     def LowerLevel(self):
-        self.level = self.level - 1
+        self.level = self.level - 1 
         
+        #Reset to the correct color for the new level
         if self.level == 1:
             self.color = RED
         elif self.level == 2:
@@ -98,53 +99,20 @@ def runGame():
     y = 0
 
     while True: # main game loop
-        for event in pygame.event.get(): # event handling loop
-            if event.type == QUIT:
-                terminate()
-            elif event.type == KEYDOWN: # Signify which direction to move the player
-                if (event.key == K_LEFT or event.key == K_a):
-                    direction = LEFT
-                elif (event.key == K_RIGHT or event.key == K_d):
-                    direction = RIGHT
-                elif event.key == K_ESCAPE:
-                    terminate()
-                elif event.key == K_SPACE:                    
-                    bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) # Create the bullet
-                    bullets.append(bullet) #Add to bullet list
-                elif event.key == K_k: # if 'k' is pressed 
-                   aliens.clear() # kill those filthy aliens!
-                   bullets.clear()
-            elif event.type == KEYUP: # Signify that the movement should stop
-                if (event.key == K_LEFT or event.key == K_a):
-                    direction = NONE
-                elif (event.key == K_RIGHT or event.key == K_d):
-                    direction = NONE     
 
+        direction = eventLoop(playerCoords, direction)
+        
+        # Record collision detection time for science
         start = time.time()
         CollisionDetection(aliens, bullets, playerCoords, barricadeCoords) # Do that collision detection magic!
         end = time.time()
         print('Collision detection time: ' + str(end - start))       
         
-        if len(aliens) < (TotalAliens * .75):
-            WaitAmount = 9
-        if len(aliens) < (TotalAliens * .50): 
-            WaitAmount = 8
-        if len(aliens) < (TotalAliens * .25):
-            WaitAmount = 6
+        WaitAmount = speedUp(WaitAmount, TotalAliens)
 
-        # move the player
-        if direction == LEFT and playerCoords['x'] > 0:
-            playerCoords['x'] = playerCoords['x'] - 1
-        elif direction == RIGHT and playerCoords['x'] < (WINDOWWIDTH / CELLSIZE) -  1:
-            playerCoords['x'] = playerCoords['x'] + 1          
+        movePlayer(playerCoords, direction)    
         
-        # Move the bullets that exist
-        if len(bullets) > 0: # If there are bullets
-            for bullet in bullets: # Loop through the bullets
-                bullet.coords['y'] = bullet.coords['y'] + bullet.direction # Move it up
-
-                if bullet.coords['y'] < 0 or bullet.coords['y'] > 48: # If the bullet has reached the end of the screen
-                    bullets.remove(bullet) # Remove it
+        moveBullets()
 
         # Move the aliens
         if len(aliens) > 0 and alienWait == 0: #If wait is up and there are aliens
@@ -195,6 +163,56 @@ def runGame():
         if len(aliens) == 0: # Check if there are still aliens
             break # There are none left, end the game
 
+def movePlayer(playerCoords, direction):
+    # move the player
+    if direction == LEFT and playerCoords['x'] > 0:
+        playerCoords['x'] = playerCoords['x'] - 1
+    elif direction == RIGHT and playerCoords['x'] < (WINDOWWIDTH / CELLSIZE) -  1:
+        playerCoords['x'] = playerCoords['x'] + 1 
+
+def speedUp(WaitAmount, TotalAliens):
+    # Speed up the aliens depending on how many are left
+    if len(aliens) < (TotalAliens * .75):
+        WaitAmount = 9
+    if len(aliens) < (TotalAliens * .50): 
+        WaitAmount = 8
+    if len(aliens) < (TotalAliens * .25):
+        WaitAmount = 6
+    return WaitAmount
+
+def eventLoop(playerCoords, direction):
+    for event in pygame.event.get(): # event handling loop
+        if event.type == QUIT:
+            terminate()
+        elif event.type == KEYDOWN: # Signify which direction to move the player
+            if (event.key == K_LEFT or event.key == K_a):
+                direction = LEFT
+            elif (event.key == K_RIGHT or event.key == K_d):
+                direction = RIGHT
+            elif event.key == K_ESCAPE:
+                terminate()
+            elif event.key == K_SPACE:                    
+                bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) # Create the bullet
+                bullets.append(bullet) #Add to bullet list
+            elif event.key == K_k: # if 'k' is pressed 
+                aliens.clear() # kill those filthy aliens!
+                bullets.clear()
+        elif event.type == KEYUP: # Signify that the movement should stop
+            if (event.key == K_LEFT or event.key == K_a):
+                direction = NONE
+            elif (event.key == K_RIGHT or event.key == K_d):
+                direction = NONE     
+    return direction
+
+def moveBullets():
+# Move the bullets that exist
+    if len(bullets) > 0: # If there are bullets
+        for bullet in bullets: # Loop through the bullets
+            bullet.coords['y'] = bullet.coords['y'] + bullet.direction # Move it up
+
+            if bullet.coords['y'] < 0 or bullet.coords['y'] > 48: # If the bullet has reached the end of the screen
+                bullets.remove(bullet) # Remove it
+
 def drawPressKeyMsg():
     pressKeySurf = BASICFONT.render('Press a key to play.', True, DARKGRAY)
     pressKeyRect = pressKeySurf.get_rect()
@@ -206,9 +224,11 @@ def terminate():
     sys.exit()
 
 def showGameOverScreen():
+    #Default victory message
     top = 'Victory'
     bottom = 'Royale'
 
+    #Loss message
     if not Win:
         top = 'You'
         bottom = 'Died'
@@ -346,16 +366,10 @@ def AlienShoot(aliens):
         
 def CollisionDetection(aliens, bullets, playerCoords, barricades):
     for bullet in bullets: # Loop through all the bullets
-        Bulletx = bullet.coords['x']
-        Bullety = bullet.coords['y']
-
         #Check if bullet is in range of aliens        
-        if Bullety <= alienLowest and Bullety >= alienHighest:
+        if bullet.coords['y'] <= alienLowest and bullet.coords['y'] >= alienHighest:
             for alien in aliens: # Loop through all the aliens
-                Alienx = alien.coords['x']
-                Alieny = alien.coords['y']
-
-                if abs(Alienx - Bulletx) < 1 and abs(Alieny - Bullety) < 1: # Check if a bullet is on the same cell as an alien
+                if abs(alien.coords['x'] - bullet.coords['x']) < 1 and abs(alien.coords['y'] - bullet.coords['y']) < 1: # Check if a bullet is on the same cell as an alien
                     if alien.level > 1:
                         alien.LowerLevel()
                     else:
@@ -366,21 +380,16 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
                     break
 
         #Check if bullet is in range of barricades
-        elif Bullety > 38 and Bullety < 44:
+        elif bullet.coords['y'] > 38 and bullet.coords['y'] < 44:
             for barricade in barricades: # Loop through all the barricades
-                barrx = barricade['x']
-                barry = barricade['y']
-
-                if abs(barrx - Bulletx) < 1 and abs(barry - Bullety) < 1: # Check if a bullet is on the same cell as a barricade part
+                if abs(barricade['x'] - bullet.coords['x']) < 1 and abs(barricade['y'] - bullet.coords['y']) < 1: # Check if a bullet is on the same cell as a barricade part
                     barricades.remove(barricade) # remove barricade
                     bullets.remove(bullet) # Remove bullet
                     break
 
         #Check if bullet is in range of player
-        elif Bullety == 45:            
-            Playerx = playerCoords['x'] 
-            Playery = playerCoords['y']
-            if abs(Playerx - Bulletx) < 1 and abs(Playery - Bullety) < 1: # Check if a bullet is on the same cell as the player
+        elif bullet.coords['y'] == 45:            
+            if abs(playerCoords['x']  - bullet.coords['x']) < 1 and abs(playerCoords['y'] - bullet.coords['y']) < 1: # Check if a bullet is on the same cell as the player
                 lose(aliens) # you lost
                 break 
 
@@ -411,6 +420,7 @@ def CreateBarricades():
 
         x += 9
 
+#Reset all of the global lists
 def ClearAll():
     bullets.clear()
     aliens.clear()
