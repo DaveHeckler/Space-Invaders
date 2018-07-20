@@ -2,6 +2,7 @@ import random, pygame, sys, time
 from pygame.locals import *
 
 PlayerImg = pygame.image.load("player.png")
+HeartImg = pygame.image.load('heart.png')
 
 FPS = 15
 WINDOWWIDTH = 640
@@ -23,15 +24,22 @@ YELLOW    = (239, 255,  96)
 BLUE      = ( 66, 194, 244)
 BGCOLOR = BLACK
 
+#Ditch?
 LEFT = 'left'
 RIGHT = 'right'
 NONE = 'none'
 
+#Game Vars
 Score = 0
+Lives = 3
+Win = True;
+
+#Lists and such
 bullets = []
 alienCoords = []
 barricadeCoords = []
-Win = True;
+
+#Alien Vars
 AlienLowest = -1
 AlienHighest = -1
 
@@ -161,7 +169,7 @@ def runGame():
         
         alienWait -= 1 # Count down for the alien timer
         
-
+        #Draw Everything!
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
         drawBarricade(barricadeCoords)
@@ -169,6 +177,7 @@ def runGame():
         drawBullets(bullets)
         drawAliens(alienCoords)
         drawScore()
+        drawLives()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -206,6 +215,10 @@ def showGameOverScreen():
     drawPressKeyMsg()
     pygame.display.update()
     pygame.time.wait(500)
+
+    if (Lives == 0):
+        terminate()
+
     checkForKeyPress() #clear out any key presses in the event queue
 
     while True:
@@ -270,8 +283,14 @@ def drawGrid():
 def drawScore():
     scoreSurf = BASICFONT.render('Score: %s' % (Score), True, WHITE)
     scoreRect = scoreSurf.get_rect()
-    scoreRect.topleft = (WINDOWWIDTH - 120, 10)
+    scoreRect.topleft = (WINDOWWIDTH - 120, 1)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
+
+def drawLives():
+    x = 1
+    for i in range(Lives):
+        DISPLAYSURF.blit(HeartImg, (x, 1))
+        x += 3 * CELLSIZE
 
 def drawPlayer(playerCoords):
     x = playerCoords['x'] * CELLSIZE
@@ -382,6 +401,8 @@ def lose(alienCoords):
     bullets.clear()
     global Win
     Win = False # You did not win
+    global Lives
+    Lives -= 1
 
 if __name__ == '__main__':
     main()
