@@ -3,8 +3,7 @@ from pygame.locals import *
 
 PlayerImg = pygame.image.load("player.png")
 
-#FPS = 15
-FPS = 60
+FPS = 15
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
 CELLSIZE = 10
@@ -46,6 +45,7 @@ class Bullet:
 class Alien:
     def __init__(self, level):
         self.level = level
+        self.coords = coords
 
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
@@ -158,8 +158,8 @@ def runGame():
                     break
 
             alienWait = WaitAmount # Reset the timer
-            #AlienShoot(alienCoords) # Have the aliens shoot
-            #AlienShoot(alienCoords) # Shoot again
+            AlienShoot(alienCoords) # Have the aliens shoot
+            AlienShoot(alienCoords) # Shoot again
         
         alienWait -= 1 # Count down for the alien timer
 
@@ -335,8 +335,7 @@ def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
                     break
 
         #Check if bullet is in range of player
-        elif Bullety == 45:
-            #Get the player location
+        elif Bullety == 45:            
             Playerx = playerCoords['x'] 
             Playery = playerCoords['y']
             if abs(Playerx - Bulletx) < 1 and abs(Playery - Bullety) < 1: # Check if a bullet is on the same cell as the player
