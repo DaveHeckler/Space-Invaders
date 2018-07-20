@@ -339,7 +339,10 @@ def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
             Playerx = playerCoords['x'] 
             Playery = playerCoords['y']
             if abs(Playerx - Bulletx) < 1 and abs(Playery - Bullety) < 1: # Check if a bullet is on the same cell as the player
-                lose()
+                alienCoords.clear() # kill those filthy aliens to end the game
+                bullets.clear()
+                global Win
+                Win = False # You did not win
                 break 
 
 def CreateBarricades():
