@@ -36,12 +36,12 @@ Win = True;
 
 #Lists and such
 bullets = []
-alienCoords = []
+aliens = []
 barricadeCoords = []
 
 #Alien Vars
-AlienLowest = -1
-AlienHighest = -1
+alienLowest = -1
+alienHighest = -1
 
 class Bullet:
     def __init__(self, color, direction, coords):
@@ -50,7 +50,7 @@ class Bullet:
         self.coords = coords
 
 class Alien:
-    def __init__(self, level):
+    def __init__(self, level, coords):
         self.level = level
         self.coords = coords
 
@@ -75,7 +75,9 @@ def runGame():
     direction = NONE     
 
     # Alien Vars
-    alienCoords = CreateAliens()
+    global aliens
+    aliens = CreateAliens()
+    TotalAliens = len(aliens)
     changeDir = False
     movedDown = False
     WaitAmount = 10 # Number of game loops to wait until moving the aliens
@@ -99,7 +101,7 @@ def runGame():
                     bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) # Create the bullet
                     bullets.append(bullet) #Add to bullet list
                 elif event.key == K_k: # if 'k' is pressed 
-                   alienCoords.clear() # kill those filthy aliens!
+                   aliens.clear() # kill those filthy aliens!
                    bullets.clear()
             elif event.type == KEYUP: # Signify that the movement should stop
                 if (event.key == K_LEFT or event.key == K_a):
@@ -108,16 +110,15 @@ def runGame():
                     direction = NONE     
 
         start = time.time()
-        CollisionDetection(alienCoords, bullets, playerCoords, barricadeCoords) # Do that collision detection magic!
+        CollisionDetection(aliens, bullets, playerCoords, barricadeCoords) # Do that collision detection magic!
         end = time.time()
         print('Collision detection time: ' + str(end - start))       
-
-        TotalAliens = len(alienCoords)
-        if len(alienCoords) < (TotalAliens * .75):
+        
+        if len(aliens) < (TotalAliens * .75):
             WaitAmount = 9
-        if len(alienCoords) < (TotalAliens * .50):
+        if len(aliens) < (TotalAliens * .50):
             WaitAmount = 8
-        if len(alienCoords) < (TotalAliens * .25):
+        if len(aliens) < (TotalAliens * .25):
             WaitAmount = 6
 
         # move the player
@@ -135,37 +136,36 @@ def runGame():
                     bullets.remove(bullet) # Remove it
 
         # Move the aliens
-        if len(alienCoords) > 0 and alienWait == 0: #If wait is up and there are aliens
+        if len(aliens) > 0 and alienWait == 0: #If wait is up and there are aliens
             if changeDir: # Aliens reached the end, move them down
                 prevx = x # Save old direction to flip later
                 x = 0 # Dont move left or right
                 y = 1 # Move down 1
                 movedDown = True
 
-            for alien in alienCoords: # Loop through each alien
-                index  = alienCoords.index(alien) # Get the index of the current
-                alienCoords[alienCoords.index(alien)] = {'x': alien['x'] + x, 'y': alien['y'] + y} # Move the alien
+            for alien in aliens: # Loop through each alien
+                alien.coords = {'x': alien.coords['x'] + x, 'y': alien.coords['y'] + y} # Move the alien
                 
-                if alienCoords[index]['x'] > (WINDOWWIDTH / CELLSIZE) -  2 or alienCoords[index]['x'] <  1: # Reached the end, signify a down and change direction
+                if alien.coords['x'] > (WINDOWWIDTH / CELLSIZE) -  2 or alien.coords['x'] <  1: # Reached the end, signify a down and change direction
                     changeDir = True
 
             if movedDown: # Aliens have been moved down, now change their direction
                 x = prevx * -1 # Switch the x direction
                 y = 0 # Don't move down
-                global AlienLowest
-                AlienLowest += 1
-                global AlienHighest
-                AlienHighest += 1
+                global alienLowest
+                alienLowest += 1
+                global alienHighest
+                alienHighest += 1
                 changeDir = False
                 movedDown = False
 
-                if AlienLowest > 38:
-                    lose(alienCoords)
+                if alienLowest > 38:
+                    lose(aliens)
                     break
 
             alienWait = WaitAmount # Reset the timer
-            AlienShoot(alienCoords) # Have the aliens shoot
-            AlienShoot(alienCoords) # Shoot again
+            AlienShoot(aliens) # Have the aliens shoot
+            AlienShoot(aliens) # Shoot again
         
         alienWait -= 1 # Count down for the alien timer
         
@@ -175,13 +175,13 @@ def runGame():
         drawBarricade(barricadeCoords)
         drawPlayer(playerCoords)
         drawBullets(bullets)
-        drawAliens(alienCoords)
+        drawAliens(aliens)
         drawScore()
         drawLives()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
-        if len(alienCoords) == 0: # Check if there are still aliens
+        if len(aliens) == 0: # Check if there are still aliens
             break # There are none left, end the game
 
 def drawPressKeyMsg():
@@ -238,24 +238,24 @@ def checkForKeyPress():
     return keyUpEvents[0].key    
 
 def CreateAliens():
-    # Setup the AlienCoord Datastructure (List of Dictionaries)
-    AlienCoords = []
-    Alien = {}
+    # Setup the AlienCoord Datastructure (List of objects)
+    Aliens = []
+    alien = {}
 
     # Loop through the portion of the window where there should be aliens
     for y in range(int((WINDOWHEIGHT / CELLSIZE))):
         for x in range(int((WINDOWWIDTH / CELLSIZE))):
             if (x % 2) == 0 and (y % 2) == 0 and x > 8 and x < 56 and y < 20 and y > 1: # Even cells only
-                Alien = ({'x': x,     'y': y}) #Create Alien
-                AlienCoords.append(Alien) #Add Alien to list
+                alien = Alien(1, {'x': x,     'y': y}) #Create Alien
+                Aliens.append(alien) #Add Alien to list
 
     # Record the top and bottom of the aliens, used for collision detection
-    global AlienHighest
-    global AlienLowest
-    AlienHighest = AlienCoords[1]['y']
-    AlienLowest = AlienCoords[-1]['y']
+    global alienHighest
+    global alienLowest
+    alienHighest = Aliens[1].coords['y']
+    alienLowest = Aliens[-1].coords['y']
 
-    return AlienCoords
+    return Aliens
 
 
 def drawBullets(bullets):
@@ -265,12 +265,12 @@ def drawBullets(bullets):
         BulletRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
         pygame.draw.rect(DISPLAYSURF, bullet.color, BulletRec)
 
-def drawAliens(alienCoords):
-    for coord in alienCoords: # for each alien
-        x = coord['x'] * CELLSIZE # Multiply location by its cell size
-        y = coord['y'] * CELLSIZE
-        Alien = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, RED, Alien)
+def drawAliens(aliens):
+    for alien in aliens: # for each alien
+        x = alien.coords['x'] * CELLSIZE # Multiply location by its cell size
+        y = alien.coords['y'] * CELLSIZE
+        alien = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, RED, alien)
 
 def drawGrid():
     for x in range(0, WINDOWWIDTH, CELLSIZE): # draw vertical lines
@@ -307,40 +307,40 @@ def drawBarricade(barricadeCoords):
         pygame.draw.rect(DISPLAYSURF, WHITE, barricadepart)
 
 #Could this be improved?????
-def AlienShoot(alienCoords):
+def AlienShoot(aliens):
     Columns = []
     LowestY = -1    
 
-    for alien in alienCoords: # Loop through aliens
-        alienX = alien['x'] * CELLSIZE # Get column value of each alien
+    for alien in aliens: # Loop through aliens
+        alienX = alien.coords['x'] * CELLSIZE # Get column value of each alien
         if alienX not in Columns: # if the current column value hasnt been recorded
             Columns.append(alienX) # add the current column to the list of clumns
     
     ShootingColumn = random.randint(0, len(Columns) - 1) # Pick a random column
 
-    for alien in alienCoords: # Loop again to find the bottom row
-        alienX = alien['x'] * CELLSIZE # get the column value of each alien
+    for alien in aliens: # Loop again to find the bottom row
+        alienX = alien.coords['x'] * CELLSIZE # get the column value of each alien
         if alienX == Columns[ShootingColumn]: # if the current alien is in the select column
-            alienY = alien['y'] * CELLSIZE  # record current y value
+            alienY = alien.coords['y'] * CELLSIZE  # record current y value
             if alienY > LowestY: # See if this is the lowest down alien we have seen
                 LowestY = alienY # This is the lowest down alien
 
     bullet = Bullet(BLUE, 1, {'x': Columns[ShootingColumn] / CELLSIZE, 'y': (LowestY / CELLSIZE) + 1}) # Create Alien bullet at the select column and the lowest down alien
     bullets.append(bullet) # Add to bullet list
         
-def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
+def CollisionDetection(aliens, bullets, playerCoords, barricades):
     for bullet in bullets: # Loop through all the bullets
         Bulletx = bullet.coords['x']
         Bullety = bullet.coords['y']
 
         #Check if bullet is in range of aliens        
-        if Bullety <= AlienLowest and Bullety >= AlienHighest:
-            for Aliencoord in alienCoords: # Loop through all the aliens
-                Alienx = Aliencoord['x']
-                Alieny = Aliencoord['y']
+        if Bullety <= alienLowest and Bullety >= alienHighest:
+            for alien in aliens: # Loop through all the aliens
+                Alienx = alien.coords['x']
+                Alieny = alien.coords['y']
 
                 if abs(Alienx - Bulletx) < 1 and abs(Alieny - Bullety) < 1: # Check if a bullet is on the same cell as an alien
-                    alienCoords.remove(Aliencoord) # Kill alien
+                    aliens.remove(alien) # Kill alien
                     bullets.remove(bullet) # Remove bullet
                     global Score 
                     Score += 10 # 10 points Gryffindor!!!
@@ -362,10 +362,11 @@ def CollisionDetection(alienCoords, bullets, playerCoords, barricades):
             Playerx = playerCoords['x'] 
             Playery = playerCoords['y']
             if abs(Playerx - Bulletx) < 1 and abs(Playery - Bullety) < 1: # Check if a bullet is on the same cell as the player
-                lose(alienCoords)
+                lose(aliens) # you lost
                 break 
 
 def CreateBarricades():
+    barricadeCoords.clear()
     x = 1
     while x < 70:
         barricadeCoords.append({'x': x + 2, 'y': 43})
@@ -393,11 +394,11 @@ def CreateBarricades():
 
 def ClearAll():
     bullets.clear()
-    alienCoords.clear()
+    aliens.clear()
     barricadeCoords.clear()
 
-def lose(alienCoords):
-    alienCoords.clear() # kill those filthy aliens to end the game
+def lose(aliens):
+    aliens.clear() # kill those filthy aliens to end the game
     bullets.clear()
     global Win
     Win = False # You did not win
