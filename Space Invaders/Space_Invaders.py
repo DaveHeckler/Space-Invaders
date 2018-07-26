@@ -34,15 +34,17 @@ NONE = 'none'
 Score = 0
 Lives = 3
 Win = True;
+GameOver = False
 
 #Lists and such
 bullets = []
 aliens = []
-barricadeCoords = []
+barricades = []
 
 #Alien Vars
 alienLowest = -1
 alienHighest = -1
+TotalAliens = -1
 
 class Bullet:
     def __init__(self, color, direction, coords):
@@ -75,11 +77,19 @@ def main():
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('Space Invaders')
 
+    global aliens
+    aliens = CreateAliens()
+    global TotalAliens
+    TotalAliens = len(aliens)
+    CreateBarricades()
+
     while True:
-        ClearAll()
-        CreateBarricades()
         runGame()
         showGameOverScreen()
+        global bullets
+        bullets.clear()
+        global GameOver
+        GameOver = False
 
 def runGame():
     # Player Vars
@@ -87,9 +97,6 @@ def runGame():
     direction = NONE     
 
     # Alien Vars
-    global aliens
-    aliens = CreateAliens()
-    TotalAliens = len(aliens)
     changeDir = False
     movedDown = False
     WaitAmount = 10 # Number of game loops to wait until moving the aliens
@@ -104,11 +111,11 @@ def runGame():
         
         # Record collision detection time for science
         start = time.time()
-        CollisionDetection(aliens, bullets, playerCoords, barricadeCoords) # Do that collision detection magic!
+        CollisionDetection(aliens, bullets, playerCoords, barricades) # Do that collision detection magic!
         end = time.time()
         print('Collision detection time: ' + str(end - start))       
         
-        WaitAmount = speedUp(WaitAmount, TotalAliens)
+        WaitAmount = speedUp(WaitAmount)
 
         movePlayer(playerCoords, direction)    
         
@@ -151,7 +158,7 @@ def runGame():
          #Draw Everything!
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
-        drawBarricade(barricadeCoords)
+        drawBarricade(barricades)
         drawPlayer(playerCoords)
         drawBullets(bullets)
         drawAliens(aliens)
@@ -161,7 +168,10 @@ def runGame():
         FPSCLOCK.tick(FPS)
 
         if len(aliens) == 0: # Check if there are still aliens
+            Win = True
             break # There are none left, end the game
+        if GameOver:
+            break
 
 def movePlayer(playerCoords, direction):
     # move the player
@@ -170,7 +180,7 @@ def movePlayer(playerCoords, direction):
     elif direction == RIGHT and playerCoords['x'] < (WINDOWWIDTH / CELLSIZE) -  1:
         playerCoords['x'] = playerCoords['x'] + 1 
 
-def speedUp(WaitAmount, TotalAliens):
+def speedUp(WaitAmount):
     # Speed up the aliens depending on how many are left
     if len(aliens) < (TotalAliens * .75):
         WaitAmount = 9
@@ -195,8 +205,8 @@ def eventLoop(playerCoords, direction):
                 bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) # Create the bullet
                 bullets.append(bullet) #Add to bullet list
             elif event.key == K_k: # if 'k' is pressed 
-                aliens.clear() # kill those filthy aliens!
-                bullets.clear()
+                global GameOver
+                GameOver = True
         elif event.type == KEYUP: # Signify that the movement should stop
             if (event.key == K_LEFT or event.key == K_a):
                 direction = NONE
@@ -382,7 +392,7 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
         #Check if bullet is in range of barricades
         elif bullet.coords['y'] > 38 and bullet.coords['y'] < 44:
             for barricade in barricades: # Loop through all the barricades
-                if abs(barricade['x'] - bullet.coords['x']) < 1 and abs(barricade['y'] - bullet.coords['y']) < 1: # Check if a bullet is on the same cell as a barricade part
+                if abs(barricade['x'] - bullet.coords['x']) < 1 and abs(barricade['y'] - bullet.coords['y']) == 0: # Check if a bullet is on the same cell as a barricade part
                     barricades.remove(barricade) # remove barricade
                     bullets.remove(bullet) # Remove bullet
                     break
@@ -390,49 +400,43 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
         #Check if bullet is in range of player
         elif bullet.coords['y'] == 45:            
             if abs(playerCoords['x']  - bullet.coords['x']) < 1 and abs(playerCoords['y'] - bullet.coords['y']) < 1: # Check if a bullet is on the same cell as the player
-                lose(aliens) # you lost
+                PlayerHasBeenHit()
                 break 
 
 def CreateBarricades():
-    barricadeCoords.clear()
+    barricades.clear()
     x = 1
     while x < 70:
-        barricadeCoords.append({'x': x + 2, 'y': 43})
-        barricadeCoords.append({'x': x + 2, 'y': 42})
-        barricadeCoords.append({'x': x + 2, 'y': 41})
-        barricadeCoords.append({'x': x + 2, 'y': 40})
-        barricadeCoords.append({'x': x + 3, 'y': 42})
-        barricadeCoords.append({'x': x + 3, 'y': 41})
-        barricadeCoords.append({'x': x + 3, 'y': 40})
-        barricadeCoords.append({'x': x + 3, 'y': 39})
-        barricadeCoords.append({'x': x + 4, 'y': 42})
-        barricadeCoords.append({'x': x + 4, 'y': 41})
-        barricadeCoords.append({'x': x + 4, 'y': 40})
-        barricadeCoords.append({'x': x + 4, 'y': 39})
-        barricadeCoords.append({'x': x + 5, 'y': 42})
-        barricadeCoords.append({'x': x + 5, 'y': 41})
-        barricadeCoords.append({'x': x + 5, 'y': 40})
-        barricadeCoords.append({'x': x + 5, 'y': 39})
-        barricadeCoords.append({'x': x + 6, 'y': 43})
-        barricadeCoords.append({'x': x + 6, 'y': 42})
-        barricadeCoords.append({'x': x + 6, 'y': 41})
-        barricadeCoords.append({'x': x + 6, 'y': 40})        
+        barricades.append({'x': x + 2, 'y': 43})
+        barricades.append({'x': x + 2, 'y': 42})
+        barricades.append({'x': x + 2, 'y': 41})
+        barricades.append({'x': x + 2, 'y': 40})
+        barricades.append({'x': x + 3, 'y': 42})
+        barricades.append({'x': x + 3, 'y': 41})
+        barricades.append({'x': x + 3, 'y': 40})
+        barricades.append({'x': x + 3, 'y': 39})
+        barricades.append({'x': x + 4, 'y': 42})
+        barricades.append({'x': x + 4, 'y': 41})
+        barricades.append({'x': x + 4, 'y': 40})
+        barricades.append({'x': x + 4, 'y': 39})
+        barricades.append({'x': x + 5, 'y': 42})
+        barricades.append({'x': x + 5, 'y': 41})
+        barricades.append({'x': x + 5, 'y': 40})
+        barricades.append({'x': x + 5, 'y': 39})
+        barricades.append({'x': x + 6, 'y': 43})
+        barricades.append({'x': x + 6, 'y': 42})
+        barricades.append({'x': x + 6, 'y': 41})
+        barricades.append({'x': x + 6, 'y': 40})        
 
         x += 9
 
-#Reset all of the global lists
-def ClearAll():
-    bullets.clear()
-    aliens.clear()
-    barricadeCoords.clear()
-
-def lose(aliens):
-    aliens.clear() # kill those filthy aliens to end the game
-    bullets.clear()
-    global Win
-    Win = False # You did not win
+def PlayerHasBeenHit():
     global Lives
     Lives -= 1
+    global GameOver                
+    GameOver = True
+    global Win
+    Win = False
 
 if __name__ == '__main__':
     main()
