@@ -29,6 +29,28 @@ class Alien:
         elif self.level == 2:
             self.color = PURPLE
 
+class Barricade:
+    def __init__(self, level, coords, color):
+        self.level = level
+        self.coords = coords
+        self.color = color
+
+class Quadrants:
+    firstBounds = [0, WINDOWWIDTH / 4]
+    secondBounds = [firstBounds[0], firstBounds[1] + WINDOWWIDTH / 4]
+    thirdBounds = [secondBounds[0], secondBounds[1] + WINDOWWIDTH / 4]
+    fourthBounds = [thirdBounds[0], thirdBounds[1] + WINDOWWIDTH / 4]
+
+    first = []
+    second = []
+    third = []
+    fourth = []
+
+    def __init__(self):        
+        self = self
+
+
+
 PlayerImg = pygame.image.load("player.png")
 HeartImg = pygame.image.load('heart.png')
 
