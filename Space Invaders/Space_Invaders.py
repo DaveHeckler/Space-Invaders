@@ -1,50 +1,12 @@
 import random, pygame, sys, time
 from pygame.locals import *
 
-PlayerImg = pygame.image.load("player.png")
-HeartImg = pygame.image.load('heart.png')
-
-FPS = 15
-WINDOWWIDTH = 640
-WINDOWHEIGHT = 480
-CELLSIZE = 10
-assert WINDOWWIDTH % CELLSIZE == 0, "Window width must be a multiple of cell size."
-assert WINDOWHEIGHT % CELLSIZE == 0, "Window height must be a multiple of cell size."
-CELLWIDTH = int(WINDOWWIDTH / CELLSIZE)
-CELLHEIGHT = int(WINDOWHEIGHT / CELLSIZE)
-
-#             R    G    B
-WHITE     = (255, 255, 255)
-BLACK     = (  0,   0,   0)
-RED       = (255,   0,   0)
-GREEN     = (  0, 255,   0)
-DARKGREEN = (  0, 155,   0)
-DARKGRAY  = ( 40,  40,  40)
-YELLOW    = (239, 255,  96)
-BLUE      = ( 66, 194, 244)
-PURPLE    = (185,  66, 244)
-BGCOLOR = BLACK
-
-#Ditch?
-LEFT = 'left'
-RIGHT = 'right'
-NONE = 'none'
-
-#Game Vars
-Score = 0
-Lives = 3
-Win = True;
-GameOver = False
-
-#Lists and such
-bullets = []
-aliens = []
-barricades = []
-
-#Alien Vars
-alienLowest = -1
-alienHighest = -1
-TotalAliens = -1
+class Game:
+    def __init__(self, Score, Lives, WinStatus, GameOver):
+        self.Score = Score
+        self.Lives = Lives
+        self.WinStatus = WinStatus
+        self.GameOver = GameOver
 
 class Bullet:
     def __init__(self, color, direction, coords):
@@ -67,9 +29,47 @@ class Alien:
         elif self.level == 2:
             self.color = PURPLE
 
+PlayerImg = pygame.image.load("player.png")
+HeartImg = pygame.image.load('heart.png')
+
+FPS = 15
+WINDOWWIDTH = 640
+WINDOWHEIGHT = 480
+CELLSIZE = 10
+assert WINDOWWIDTH % CELLSIZE == 0, "Window width must be a multiple of cell size."
+assert WINDOWHEIGHT % CELLSIZE == 0, "Window height must be a multiple of cell size."
+CELLWIDTH = int(WINDOWWIDTH / CELLSIZE)
+CELLHEIGHT = int(WINDOWHEIGHT / CELLSIZE)
+
+#Colors
+#             R    G    B
+WHITE     = (255, 255, 255)
+BLACK     = (  0,   0,   0)
+RED       = (255,   0,   0)
+GREEN     = (  0, 255,   0)
+DARKGREEN = (  0, 155,   0)
+DARKGRAY  = ( 40,  40,  40)
+YELLOW    = (239, 255,  96)
+BLUE      = ( 66, 194, 244)
+PURPLE    = (185,  66, 244)
+BGCOLOR = BLACK
+
+#Setup Game Object
+game = Game(0, 3, True, False)
+
+#Lists and such
+bullets = []
+aliens = []
+barricades = []
+
+#Alien Vars
+alienLowest = -1
+alienHighest = -1
+TotalAliens = -1
+
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, aliens, TotalAliens, game
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
@@ -77,24 +77,23 @@ def main():
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('Space Invaders')
 
-    global aliens
     aliens = CreateAliens()
-    global TotalAliens
     TotalAliens = len(aliens)
     CreateBarricades()
+
+
 
     while True:
         runGame()
         showGameOverScreen()
         global bullets
         bullets.clear()
-        global GameOver
-        GameOver = False
+        game.GameOver = False
 
 def runGame():
     # Player Vars
     playerCoords = {'x': 5, 'y': 45}
-    direction = NONE     
+    direction = 'none'     
 
     # Alien Vars
     changeDir = False
@@ -170,14 +169,14 @@ def runGame():
         if len(aliens) == 0: # Check if there are still aliens
             Win = True
             break # There are none left, end the game
-        if GameOver:
+        if game.GameOver:
             break
 
 def movePlayer(playerCoords, direction):
     # move the player
-    if direction == LEFT and playerCoords['x'] > 0:
+    if direction == 'left' and playerCoords['x'] > 0:
         playerCoords['x'] = playerCoords['x'] - 1
-    elif direction == RIGHT and playerCoords['x'] < (WINDOWWIDTH / CELLSIZE) -  1:
+    elif direction == 'right' and playerCoords['x'] < (WINDOWWIDTH / CELLSIZE) -  1:
         playerCoords['x'] = playerCoords['x'] + 1 
 
 def speedUp(WaitAmount):
@@ -191,27 +190,27 @@ def speedUp(WaitAmount):
     return WaitAmount
 
 def eventLoop(playerCoords, direction):
+    global game
     for event in pygame.event.get(): # event handling loop
         if event.type == QUIT:
             terminate()
         elif event.type == KEYDOWN: # Signify which direction to move the player
             if (event.key == K_LEFT or event.key == K_a):
-                direction = LEFT
+                direction = 'left'
             elif (event.key == K_RIGHT or event.key == K_d):
-                direction = RIGHT
+                direction = 'right'
             elif event.key == K_ESCAPE:
                 terminate()
             elif event.key == K_SPACE:                    
                 bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) # Create the bullet
                 bullets.append(bullet) #Add to bullet list
             elif event.key == K_k: # if 'k' is pressed 
-                global GameOver
-                GameOver = True
+                game.GameOver = True
         elif event.type == KEYUP: # Signify that the movement should stop
             if (event.key == K_LEFT or event.key == K_a):
-                direction = NONE
+                direction = 'none'
             elif (event.key == K_RIGHT or event.key == K_d):
-                direction = NONE     
+                direction = 'none'     
     return direction
 
 def moveBullets():
@@ -239,7 +238,7 @@ def showGameOverScreen():
     bottom = 'Royale'
 
     #Loss message
-    if not Win:
+    if not game.WinStatus:
         top = 'You'
         bottom = 'Died'
 
@@ -257,7 +256,7 @@ def showGameOverScreen():
     pygame.display.update()
     pygame.time.wait(500)
 
-    if (Lives == 0):
+    if (game.Lives == 0):
         terminate()
 
     checkForKeyPress() #clear out any key presses in the event queue
@@ -327,14 +326,14 @@ def drawGrid():
     pygame.draw.line(DISPLAYSURF, RED, (0, (38 * CELLSIZE)), (WINDOWWIDTH, (38 * CELLSIZE)))
 
 def drawScore():
-    scoreSurf = BASICFONT.render('Score: %s' % (Score), True, WHITE)
+    scoreSurf = BASICFONT.render('Score: %s' % (game.Score), True, WHITE)
     scoreRect = scoreSurf.get_rect()
     scoreRect.topleft = (WINDOWWIDTH - 120, 1)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
 def drawLives():
     x = 1
-    for i in range(Lives):
+    for i in range(game.Lives):
         DISPLAYSURF.blit(HeartImg, (x, 1))
         x += 3 * CELLSIZE
 
@@ -375,6 +374,7 @@ def AlienShoot(aliens):
     bullets.append(bullet) # Add to bullet list
         
 def CollisionDetection(aliens, bullets, playerCoords, barricades):
+    global game
     for bullet in bullets: # Loop through all the bullets
         #Check if bullet is in range of aliens        
         if bullet.coords['y'] <= alienLowest and bullet.coords['y'] >= alienHighest:
@@ -385,8 +385,7 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
                     else:
                         aliens.remove(alien) # Kill alien
                     bullets.remove(bullet) # Remove bullet
-                    global Score 
-                    Score += 10 # 10 points Gryffindor!!!
+                    game.Score += 10 # 10 points Gryffindor!!!
                     break
 
         #Check if bullet is in range of barricades
@@ -431,12 +430,10 @@ def CreateBarricades():
         x += 9
 
 def PlayerHasBeenHit():
-    global Lives
-    Lives -= 1
-    global GameOver                
-    GameOver = True
-    global Win
-    Win = False
+    global game
+    game.Lives -= 1                    
+    game.GameOver = True    
+    game.WinStatus = False
 
 if __name__ == '__main__':
     main()
