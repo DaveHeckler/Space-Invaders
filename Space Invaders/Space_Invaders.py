@@ -91,6 +91,9 @@ def main():
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('Space Invaders')
 
+    levelNum = 0
+    levels = createLevels()
+    currentLevel = levels[levelNum]
 
 
     aliens = CreateAliens()
@@ -99,17 +102,27 @@ def main():
 
 
 
+    #while True:
+    #    runGame()
+    #    showGameOverScreen()
+    #    global bullets
+    #    bullets.clear()
+    #    game.GameOver = False
 
+def createLevels():    
+    levels = []
 
-    while True:
-        runGame()
-        showGameOverScreen()
-        global bullets
-        bullets.clear()
-        game.GameOver = False
+    with open("Levels.txt") as f:
+        for line in f:
+            levelNum = line.rstrip()
+            orangeNum = f.readline().rstrip()
+            purpleNum = f.readline().rstrip()
+            alienSpeed = f.readline().rstrip()
+            level = Level(levelNum, orangeNum, purpleNum, alienSpeed)
+            levels.append(level)
+            blank = f.readline().rstrip()
 
-def createLevels():
-    test = 1
+    return levels
 
 def runGame():
     # Player Vars
