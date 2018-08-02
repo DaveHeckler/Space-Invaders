@@ -27,7 +27,7 @@ class Alien:
         if self.level == 1:
             self.color = RED
         elif self.level == 2:
-            self.color = PURPLE
+            self.color = PURPLE       
 
 class Barricade:
     def __init__(self, level, coords, color):
@@ -35,23 +35,14 @@ class Barricade:
         self.coords = coords
         self.color = color
 
-class Quadrants:
-    firstBounds = [0, WINDOWWIDTH / 4]
-    secondBounds = [firstBounds[0], firstBounds[1] + WINDOWWIDTH / 4]
-    thirdBounds = [secondBounds[0], secondBounds[1] + WINDOWWIDTH / 4]
-    fourthBounds = [thirdBounds[0], thirdBounds[1] + WINDOWWIDTH / 4]
+class Level:
+    def __init__(self, levelNum, orangeAliens, purpleAliens, alienSpeed):
+        self.levelNum = levelNum
+        self.orangeAliens = orangeAliens
+        self.purpleAliens = purpleAliens
+        self.alienSpeed = alienSpeed
 
-    first = []
-    second = []
-    third = []
-    fourth = []
-
-    def __init__(self):        
-        self = self
-
-
-
-PlayerImg = pygame.image.load("player.png")
+PlayerImg = pygame.image.load('player.png')
 HeartImg = pygame.image.load('heart.png')
 
 FPS = 15
@@ -83,6 +74,7 @@ game = Game(0, 3, True, False)
 bullets = []
 aliens = []
 barricades = []
+Levels = []
 
 #Alien Vars
 alienLowest = -1
@@ -99,9 +91,13 @@ def main():
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('Space Invaders')
 
+
+
     aliens = CreateAliens()
     TotalAliens = len(aliens)
     CreateBarricades()
+
+
 
 
 
@@ -111,6 +107,9 @@ def main():
         global bullets
         bullets.clear()
         game.GameOver = False
+
+def createLevels():
+    test = 1
 
 def runGame():
     # Player Vars
@@ -172,7 +171,6 @@ def runGame():
 
             alienWait = WaitAmount # Reset the timer
             AlienShoot(aliens) # Have the aliens shoot
-            AlienShoot(aliens) # Shoot again
         
         alienWait -= 1 # Count down for the alien timer
          
