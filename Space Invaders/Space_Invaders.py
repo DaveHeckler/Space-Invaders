@@ -359,6 +359,7 @@ def CreateAliens():
     for y in range(int((WINDOWHEIGHT / CELLSIZE))):
         for x in range(int((WINDOWWIDTH / CELLSIZE))):
             if (x % 2) == 0 and (y % 2) == 0 and x > 8 and x < 56 and y < 20 and y > 1: # Even cells only
+                # Check what type of alien to create
                 if orangeNum > 0:
                     lvl = 3
                     color = ORANGE
