@@ -470,11 +470,7 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
                     else:
                         aliens.remove(alien) # Kill alien
                     bullets.remove(bullet) # Remove bullet
-                    game.Score += 10 # 10 points Gryffindor!!!             
-                    
-
-                    aliens.clear()
-
+                    game.Score += 10 # 10 points Gryffindor!!!                                
                     break
 
         #Check if bullet is in range of barricades
