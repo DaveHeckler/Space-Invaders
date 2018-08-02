@@ -65,6 +65,7 @@ DARKGRAY  = ( 40,  40,  40)
 YELLOW    = (239, 255,  96)
 BLUE      = ( 66, 194, 244)
 PURPLE    = (185,  66, 244)
+ORANGE    = (242, 169,  53)
 BGCOLOR = BLACK
 
 #Setup Game Object
@@ -125,10 +126,10 @@ def createLevels():
 
     with open("Levels.txt") as f:
         for line in f:
-            levelNum = line.rstrip()
-            orangeNum = f.readline().rstrip()
-            purpleNum = f.readline().rstrip()
-            alienSpeed = f.readline().rstrip()
+            levelNum = int(line.rstrip())
+            orangeNum = int(f.readline().rstrip())
+            purpleNum = int(f.readline().rstrip())
+            alienSpeed = int(f.readline().rstrip())
             level = Level(levelNum, orangeNum, purpleNum, alienSpeed)
             levels.append(level)
             blank = f.readline().rstrip()
@@ -144,7 +145,7 @@ def runGame():
     # Alien Vars
     changeDir = False
     movedDown = False
-    WaitAmount = 10 # Number of game loops to wait until moving the aliens
+    WaitAmount = currentLevel.alienSpeed # Number of game loops to wait until moving the aliens
     alienWait = WaitAmount
     CurrentAlienCount = 0
     x = 1
@@ -279,8 +280,8 @@ def terminate():
 
 def showGameOverScreen():
     #Default victory message
-    top = 'Keep Going'
-    bottom = 'Royale'
+    top = 'KEEP'
+    bottom = 'GOING'
 
     #Loss message
     if not game.WinStatus:
@@ -313,7 +314,7 @@ def showGameOverScreen():
 
 def VictoryRoyale():
     #Default victory message
-    top = 'Keep Going'
+    top = 'Victory'
     bottom = 'Royale'    
 
     gameOverFont = pygame.font.Font('freesansbold.ttf', 150)
@@ -350,15 +351,25 @@ def CreateAliens():
     # Setup the AlienCoord Datastructure (List of objects)
     Aliens = []
     alien = {}
-    lvl = 2
-    color = PURPLE
+
+    orangeNum = currentLevel.orangeAliens
+    purpleNum = currentLevel.purpleAliens
+
     # Loop through the portion of the window where there should be aliens
     for y in range(int((WINDOWHEIGHT / CELLSIZE))):
         for x in range(int((WINDOWWIDTH / CELLSIZE))):
             if (x % 2) == 0 and (y % 2) == 0 and x > 8 and x < 56 and y < 20 and y > 1: # Even cells only
-                if y != 2 and y != 4:
+                if orangeNum > 0:
+                    lvl = 3
+                    color = ORANGE
+                    orangeNum -= 1
+                elif purpleNum > 0:
+                    lvl = 2
+                    color = PURPLE  
+                    purpleNum -= 1
+                else:
                     lvl = 1
-                    color = RED                
+                    color = RED  
 
                 alien = Alien(lvl, {'x': x,'y': y}, color) # Create Alien
                 Aliens.append(alien) #Add Alien to list
@@ -459,7 +470,10 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
                     else:
                         aliens.remove(alien) # Kill alien
                     bullets.remove(bullet) # Remove bullet
-                    game.Score += 10 # 10 points Gryffindor!!!                    
+                    game.Score += 10 # 10 points Gryffindor!!!             
+                    
+
+                    aliens.clear()
 
                     break
 
