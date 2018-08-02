@@ -126,7 +126,7 @@ def createLevels():
 
     with open("Levels.txt") as f:
         for line in f:
-            levelNum = int(line.rstrip())
+            levelNum = int(line.rstrip())                        
             orangeNum = int(f.readline().rstrip())
             purpleNum = int(f.readline().rstrip())
             alienSpeed = int(f.readline().rstrip())
