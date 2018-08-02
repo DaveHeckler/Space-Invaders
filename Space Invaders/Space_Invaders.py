@@ -68,7 +68,8 @@ PURPLE    = (185,  66, 244)
 BGCOLOR = BLACK
 
 #Setup Game Object
-game = Game(0, 3, True, False)
+game = Game(0, 3, False, False)
+currentLevel = -1
 
 #Lists and such
 bullets = []
@@ -83,7 +84,7 @@ TotalAliens = -1
 
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT, aliens, TotalAliens, game
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, aliens, TotalAliens, game, currentLevel, bullets
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
@@ -91,23 +92,29 @@ def main():
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('Space Invaders')
 
+    #Create populate the level definitions
     levelNum = 0
     levels = createLevels()
     currentLevel = levels[levelNum]
-
-
+    #Create aliens and 
     aliens = CreateAliens()
     TotalAliens = len(aliens)
     CreateBarricades()
 
-
-
-    #while True:
-    #    runGame()
-    #    showGameOverScreen()
-    #    global bullets
-    #    bullets.clear()
-    #    game.GameOver = False
+    while True:
+        runGame()
+        showGameOverScreen()
+        bullets.clear()
+        game.GameOver = False
+        
+        if game.WinStatus:
+            levelNum += 1
+            currentLevel = levels[levelNum]
+            aliens.clear
+            barricades.clear
+            aliens = CreateAliens()
+            TotalAliens = len(aliens)
+            CreateBarricades()
 
 def createLevels():    
     levels = []
@@ -125,6 +132,7 @@ def createLevels():
     return levels
 
 def runGame():
+    global game
     # Player Vars
     playerCoords = {'x': 5, 'y': 45}
     direction = 'none'     
@@ -195,13 +203,13 @@ def runGame():
         drawBullets(bullets)
         drawAliens(aliens)
         drawScore()
-        drawLives()
+        drawLivesAndLevel()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
         if len(aliens) == 0: # Check if there are still aliens
-            Win = True
-            break # There are none left, end the game
+            game.WinStatus = True
+            break # There are none left, next level
         if game.GameOver:
             break
 
@@ -364,11 +372,16 @@ def drawScore():
     scoreRect.topleft = (WINDOWWIDTH - 120, 1)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
-def drawLives():
+def drawLivesAndLevel():
     x = 1
     for i in range(game.Lives):
         DISPLAYSURF.blit(HeartImg, (x, 1))
         x += 3 * CELLSIZE
+
+    levelSurf = BASICFONT.render('Level: %s' % (currentLevel.levelNum), True, WHITE)
+    levelRect = levelSurf.get_rect()
+    levelRect.topleft = (x + CELLSIZE, 1)
+    DISPLAYSURF.blit(levelSurf, levelRect)
 
 def drawPlayer(playerCoords):
     x = playerCoords['x'] * CELLSIZE
@@ -419,6 +432,10 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
                         aliens.remove(alien) # Kill alien
                     bullets.remove(bullet) # Remove bullet
                     game.Score += 10 # 10 points Gryffindor!!!
+
+
+                    aliens.clear()
+
                     break
 
         #Check if bullet is in range of barricades
