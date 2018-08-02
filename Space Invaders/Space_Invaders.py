@@ -108,6 +108,8 @@ def main():
         game.GameOver = False
         
         if game.WinStatus:
+            if levelNum >= len(levels) - 1:
+                break
             levelNum += 1
             currentLevel = levels[levelNum]
             aliens.clear
@@ -115,6 +117,8 @@ def main():
             aliens = CreateAliens()
             TotalAliens = len(aliens)
             CreateBarricades()
+
+    VictoryRoyale()
 
 def createLevels():    
     levels = []
@@ -275,7 +279,7 @@ def terminate():
 
 def showGameOverScreen():
     #Default victory message
-    top = 'Victory'
+    top = 'Keep Going'
     bottom = 'Royale'
 
     #Loss message
@@ -306,6 +310,30 @@ def showGameOverScreen():
         if checkForKeyPress():
             pygame.event.get() # clear event queue
             return
+
+def VictoryRoyale():
+    #Default victory message
+    top = 'Keep Going'
+    bottom = 'Royale'    
+
+    gameOverFont = pygame.font.Font('freesansbold.ttf', 150)
+    gameSurf = gameOverFont.render(top, True, WHITE)
+    overSurf = gameOverFont.render(bottom, True, WHITE)
+    gameRect = gameSurf.get_rect()
+    overRect = overSurf.get_rect()
+    gameRect.midtop = (WINDOWWIDTH / 2, 10)
+    overRect.midtop = (WINDOWWIDTH / 2, gameRect.height + 10 + 25)
+
+    DISPLAYSURF.blit(gameSurf, gameRect)
+    DISPLAYSURF.blit(overSurf, overRect)
+    drawPressKeyMsg()
+    pygame.display.update()
+    pygame.time.wait(500)
+
+    checkForKeyPress() #clear out any key presses in the event queue
+
+    while True:
+        blank = 0
 
 def checkForKeyPress():
     if len(pygame.event.get(QUIT)) > 0:
@@ -431,10 +459,7 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
                     else:
                         aliens.remove(alien) # Kill alien
                     bullets.remove(bullet) # Remove bullet
-                    game.Score += 10 # 10 points Gryffindor!!!
-
-
-                    aliens.clear()
+                    game.Score += 10 # 10 points Gryffindor!!!                    
 
                     break
 
