@@ -51,7 +51,10 @@ class Alien:
         if self.level == 1:
             self.color = RED
         elif self.level == 2:
-            self.color = PURPLE       
+            self.color = PURPLE      
+            
+
+    
 
 class Barricade:
     def __init__(self, level, coords, color):
@@ -273,7 +276,7 @@ def eventLoop(playerCoords, direction):
             elif event.key == K_ESCAPE:
                 terminate()
             elif event.key == K_SPACE:                    
-                bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) # Create the bullet
+                bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'] + 1, 'y': playerCoords['y'] - 1}) # Create the bullet
                 bullets.append(bullet) #Add to bullet list
             elif event.key == K_k: # if 'k' is pressed 
                 aliens.clear()
@@ -400,7 +403,7 @@ def drawGrid():
     for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
 
-    #Draw the line that the aliens can't cross
+    # Draw the line that the aliens can't cross
     pygame.draw.line(DISPLAYSURF, RED, (0, (38 * CELLSIZE)), (WINDOWWIDTH, (38 * CELLSIZE)))
 
 def drawScore():
@@ -422,10 +425,8 @@ def drawLivesAndLevel():
 
 def drawPlayer(playerCoords):
     x = playerCoords['x'] * CELLSIZE
-    y = playerCoords['y'] * CELLSIZE
-    Player = pygame.Rect(x,y, CELLSIZE, CELLSIZE)    
-    pygame.draw.rect(DISPLAYSURF, DARKGREEN, Player)
-    DISPLAYSURF.blit(PlayerImg, (x - 10, y))
+    y = playerCoords['y'] * CELLSIZE  
+    DISPLAYSURF.blit(PlayerImg, (x, y))
 
 #Could this be improved?????
 def AlienShoot(aliens):
@@ -474,7 +475,7 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
 
         #Check if bullet is in range of player
         elif bullet.coords['y'] == 45:            
-            if abs(playerCoords['x']  - bullet.coords['x']) < 1 and abs(playerCoords['y'] - bullet.coords['y']) < 1: # Check if a bullet is on the same cell as the player
+            if abs((playerCoords['x'] + 1) - bullet.coords['x']) <= 1: # Check if a bullet is on the same cell as the player
                 PlayerHasBeenHit()
                 break 
 
@@ -482,6 +483,7 @@ def CreateBarricades():
     barricades.clear()
     x = 1
     while x < 70:
+        # God this is ugly
         barricades.append(Barricade(1,{'x': x + 2, 'y': 43}, WHITE))
         barricades.append(Barricade(1,{'x': x + 2, 'y': 42}, WHITE))
         barricades.append(Barricade(1,{'x': x + 2, 'y': 41}, WHITE))
