@@ -136,7 +136,7 @@ def main():
             currentLevel = levels[levelNum]
             aliens.clear
             barricades.clear
-            aliens = CreateAliens()
+            CreateAliens()
             TotalAliens = len(aliens)
             CreateBarricades()
 
@@ -388,7 +388,7 @@ def CreateAliens():
                     color = RED  
 
                 alien = Alien(lvl, {'x': x,'y': y}, color) # Create Alien
-                aliens.append(alien) #Add Alien to list
+                aliens.append(alien) # Add Alien to list
 
     # Record the top and bottom of the aliens, used for collision detection
     alienHighest = aliens[1].coords['y']
@@ -400,6 +400,7 @@ def drawGrid():
     for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
 
+    #Draw the line that the aliens can't cross
     pygame.draw.line(DISPLAYSURF, RED, (0, (38 * CELLSIZE)), (WINDOWWIDTH, (38 * CELLSIZE)))
 
 def drawScore():
