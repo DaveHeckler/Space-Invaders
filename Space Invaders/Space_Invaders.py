@@ -8,6 +8,13 @@ class Game:
         self.WinStatus = WinStatus
         self.GameOver = GameOver
 
+class Level:
+    def __init__(self, levelNum, orangeAliens, purpleAliens, alienSpeed):
+        self.levelNum = levelNum
+        self.orangeAliens = orangeAliens
+        self.purpleAliens = purpleAliens
+        self.alienSpeed = alienSpeed
+
 class Bullet:
     def __init__(self, color, direction, coords):
         self.color = color
@@ -24,7 +31,6 @@ class Bullet:
         self.coords['y'] = self.coords['y'] + self.direction # Move it up
         if self.coords['y'] < 0 or self.coords['y'] > 48: # If the bullet has reached the end of the screen
             bullets.remove(self) # Remove it
-
 
 class Alien:
     def __init__(self, level, coords, color):
@@ -58,14 +64,6 @@ class Barricade:
         y = self.coords['y'] * CELLSIZE
         barricadepart = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
         pygame.draw.rect(DISPLAYSURF, self.color, barricadepart)
-
-
-class Level:
-    def __init__(self, levelNum, orangeAliens, purpleAliens, alienSpeed):
-        self.levelNum = levelNum
-        self.orangeAliens = orangeAliens
-        self.purpleAliens = purpleAliens
-        self.alienSpeed = alienSpeed
 
 PlayerImg = pygame.image.load('player.png')
 HeartImg = pygame.image.load('heart.png')
@@ -108,10 +106,8 @@ alienLowest = -1
 alienHighest = -1
 TotalAliens = -1
 
-
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, aliens, TotalAliens, game, currentLevel, bullets, levels
-
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
@@ -123,7 +119,7 @@ def main():
     levels = createLevels()
     currentLevel = levels[levelNum]
     #Create aliens and 
-    aliens = CreateAliens()
+    CreateAliens()
     TotalAliens = len(aliens)
     CreateBarricades()
 
@@ -148,8 +144,9 @@ def main():
 
 def createLevels():    
     levels = []
+    # Open the levels text file
     with open("Levels.txt") as f:
-        for line in f:
+        for line in f: # Loop through the lines
             levelNum = int(line.rstrip())                        
             orangeNum = int(f.readline().rstrip())
             purpleNum = int(f.readline().rstrip())
@@ -161,7 +158,7 @@ def createLevels():
     return levels
 
 def runGame():
-    global game
+    global game, alienLowest, alienHighest
     # Player Vars
     playerCoords = {'x': 5, 'y': 45}
     direction = 'none'     
@@ -176,7 +173,6 @@ def runGame():
     y = 0
 
     while True: # main game loop
-
         direction = eventLoop(playerCoords, direction)
         
         # Record collision detection time for science
@@ -209,9 +205,7 @@ def runGame():
             if movedDown: # Aliens have been moved down, now change their direction
                 x = prevx * -1 # Switch the x direction
                 y = 0 # Don't move down
-                global alienLowest
                 alienLowest += 1
-                global alienHighest
                 alienHighest += 1
                 changeDir = False
                 movedDown = False
@@ -257,13 +251,13 @@ def movePlayer(playerCoords, direction):
         playerCoords['x'] = playerCoords['x'] + 1 
 
 def speedUp(WaitAmount):
-    # Speed up the aliens depending on how many are left
+    # Speed up the aliens depending on how many are left    
     if len(aliens) < (TotalAliens * .75):
-        WaitAmount = 9
+        WaitAmount = currentLevel.alienSpeed - 1
     if len(aliens) < (TotalAliens * .50): 
-        WaitAmount = 8
+        WaitAmount = currentLevel.alienSpeed - 2
     if len(aliens) < (TotalAliens * .25):
-        WaitAmount = 6
+        WaitAmount = currentLevel.alienSpeed - 4
     return WaitAmount
 
 def eventLoop(playerCoords, direction):
@@ -282,7 +276,7 @@ def eventLoop(playerCoords, direction):
                 bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1}) # Create the bullet
                 bullets.append(bullet) #Add to bullet list
             elif event.key == K_k: # if 'k' is pressed 
-                game.GameOver = True
+                aliens.clear()
         elif event.type == KEYUP: # Signify that the movement should stop
             if (event.key == K_LEFT or event.key == K_a):
                 direction = 'none'
@@ -370,10 +364,9 @@ def checkForKeyPress():
     return keyUpEvents[0].key    
 
 def CreateAliens():
+    global aliens, alienHighest, alienLowest
     # Setup the AlienCoord Datastructure (List of objects)
-    Aliens = []
     alien = {}
-
     orangeNum = currentLevel.orangeAliens
     purpleNum = currentLevel.purpleAliens
 
@@ -395,23 +388,11 @@ def CreateAliens():
                     color = RED  
 
                 alien = Alien(lvl, {'x': x,'y': y}, color) # Create Alien
-                Aliens.append(alien) #Add Alien to list
+                aliens.append(alien) #Add Alien to list
 
     # Record the top and bottom of the aliens, used for collision detection
-    global alienHighest
-    global alienLowest
-    alienHighest = Aliens[1].coords['y']
-    alienLowest = Aliens[-1].coords['y']
-
-    return Aliens
-
-
-def drawBullets(bullets):
-    for bullet in bullets:
-        x = bullet.coords['x'] * CELLSIZE
-        y = bullet.coords['y'] * CELLSIZE
-        BulletRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, bullet.color, BulletRec)
+    alienHighest = aliens[1].coords['y']
+    alienLowest = aliens[-1].coords['y']
 
 def drawGrid():
     for x in range(0, WINDOWWIDTH, CELLSIZE): # draw vertical lines
