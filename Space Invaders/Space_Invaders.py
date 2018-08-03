@@ -14,11 +14,29 @@ class Bullet:
         self.direction = direction
         self.coords = coords
 
+    def draw(self):    
+        x = self.coords['x'] * CELLSIZE
+        y = self.coords['y'] * CELLSIZE
+        BulletRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, self.color, BulletRec)
+
+    def move(self):
+        self.coords['y'] = self.coords['y'] + self.direction # Move it up
+        if self.coords['y'] < 0 or self.coords['y'] > 48: # If the bullet has reached the end of the screen
+            bullets.remove(self) # Remove it
+
+
 class Alien:
     def __init__(self, level, coords, color):
         self.level = level
         self.coords = coords
         self.color = color
+
+    def draw(self):
+        x = self.coords['x'] * CELLSIZE # Multiply location by its cell size
+        y = self.coords['y'] * CELLSIZE
+        alienRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, self.color, alienRec)
 
     def LowerLevel(self):
         self.level = self.level - 1 
@@ -34,6 +52,13 @@ class Barricade:
         self.level = level
         self.coords = coords
         self.color = color
+
+    def draw(self):    
+        x = self.coords['x'] * CELLSIZE # Multiply location by its cell size
+        y = self.coords['y'] * CELLSIZE
+        barricadepart = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, self.color, barricadepart)
+
 
 class Level:
     def __init__(self, levelNum, orangeAliens, purpleAliens, alienSpeed):
@@ -72,11 +97,11 @@ BGCOLOR = BLACK
 game = Game(0, 3, False, False)
 currentLevel = -1
 
-#Lists and such
+#Lists
 bullets = []
 aliens = []
 barricades = []
-Levels = []
+levels = []
 
 #Alien Vars
 alienLowest = -1
@@ -85,7 +110,7 @@ TotalAliens = -1
 
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT, aliens, TotalAliens, game, currentLevel, bullets
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, aliens, TotalAliens, game, currentLevel, bullets, levels
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
@@ -123,7 +148,6 @@ def main():
 
 def createLevels():    
     levels = []
-
     with open("Levels.txt") as f:
         for line in f:
             levelNum = int(line.rstrip())                        
@@ -165,7 +189,8 @@ def runGame():
 
         movePlayer(playerCoords, direction)    
         
-        moveBullets()
+        for bullet in bullets:
+            bullet.move()
 
         # Move the aliens
         if len(aliens) > 0 and alienWait == 0: #If wait is up and there are aliens
@@ -198,25 +223,31 @@ def runGame():
             alienWait = WaitAmount # Reset the timer
             AlienShoot(aliens) # Have the aliens shoot
         
-        alienWait -= 1 # Count down for the alien timer
-         
-         #Draw Everything!
-        DISPLAYSURF.fill(BGCOLOR)
-        drawGrid()
-        drawBarricade(barricades)
-        drawPlayer(playerCoords)
-        drawBullets(bullets)
-        drawAliens(aliens)
-        drawScore()
-        drawLivesAndLevel()
-        pygame.display.update()
-        FPSCLOCK.tick(FPS)
+        alienWait -= 1 # Count down for the alien timer             
+
+        drawScreen(playerCoords)
 
         if len(aliens) == 0: # Check if there are still aliens
             game.WinStatus = True
             break # There are none left, next level
         if game.GameOver:
             break
+
+def drawScreen(playerCoords):
+    #Draw Everything!
+    DISPLAYSURF.fill(BGCOLOR)
+    drawGrid()
+    drawPlayer(playerCoords)
+    for barricade in barricades: # for each barricade part    
+        barricade.draw()
+    for bullet in bullets: # for each bullet
+        bullet.draw()
+    for alien in aliens: # for each alien
+        alien.draw()
+    drawScore()
+    drawLivesAndLevel()
+    pygame.display.update()
+    FPSCLOCK.tick(FPS)
 
 def movePlayer(playerCoords, direction):
     # move the player
@@ -258,15 +289,6 @@ def eventLoop(playerCoords, direction):
             elif (event.key == K_RIGHT or event.key == K_d):
                 direction = 'none'     
     return direction
-
-def moveBullets():
-# Move the bullets that exist
-    if len(bullets) > 0: # If there are bullets
-        for bullet in bullets: # Loop through the bullets
-            bullet.coords['y'] = bullet.coords['y'] + bullet.direction # Move it up
-
-            if bullet.coords['y'] < 0 or bullet.coords['y'] > 48: # If the bullet has reached the end of the screen
-                bullets.remove(bullet) # Remove it
 
 def drawPressKeyMsg():
     pressKeySurf = BASICFONT.render('Press a key to play.', True, DARKGRAY)
@@ -391,13 +413,6 @@ def drawBullets(bullets):
         BulletRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
         pygame.draw.rect(DISPLAYSURF, bullet.color, BulletRec)
 
-def drawAliens(aliens):
-    for alien in aliens: # for each alien
-        x = alien.coords['x'] * CELLSIZE # Multiply location by its cell size
-        y = alien.coords['y'] * CELLSIZE
-        alienRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, alien.color, alienRec)
-
 def drawGrid():
     for x in range(0, WINDOWWIDTH, CELLSIZE): # draw vertical lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (x, 0), (x, WINDOWHEIGHT))
@@ -429,13 +444,6 @@ def drawPlayer(playerCoords):
     Player = pygame.Rect(x,y, CELLSIZE, CELLSIZE)    
     pygame.draw.rect(DISPLAYSURF, DARKGREEN, Player)
     DISPLAYSURF.blit(PlayerImg, (x - 10, y))
-
-def drawBarricade(barricadeCoords):
-    for coord in barricadeCoords: # for each barricade part
-        x = coord['x'] * CELLSIZE # Multiply location by its cell size
-        y = coord['y'] * CELLSIZE
-        barricadepart = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, WHITE, barricadepart)
 
 #Could this be improved?????
 def AlienShoot(aliens):
@@ -477,7 +485,7 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
         #Check if bullet is in range of barricades
         elif bullet.coords['y'] > 38 and bullet.coords['y'] < 44:
             for barricade in barricades: # Loop through all the barricades
-                if abs(barricade['x'] - bullet.coords['x']) < 1 and abs(barricade['y'] - bullet.coords['y']) == 0: # Check if a bullet is on the same cell as a barricade part
+                if abs(barricade.coords['x'] - bullet.coords['x']) < 1 and abs(barricade.coords['y'] - bullet.coords['y']) == 0: # Check if a bullet is on the same cell as a barricade part
                     barricades.remove(barricade) # remove barricade
                     bullets.remove(bullet) # Remove bullet
                     break
@@ -492,26 +500,26 @@ def CreateBarricades():
     barricades.clear()
     x = 1
     while x < 70:
-        barricades.append({'x': x + 2, 'y': 43})
-        barricades.append({'x': x + 2, 'y': 42})
-        barricades.append({'x': x + 2, 'y': 41})
-        barricades.append({'x': x + 2, 'y': 40})
-        barricades.append({'x': x + 3, 'y': 42})
-        barricades.append({'x': x + 3, 'y': 41})
-        barricades.append({'x': x + 3, 'y': 40})
-        barricades.append({'x': x + 3, 'y': 39})
-        barricades.append({'x': x + 4, 'y': 42})
-        barricades.append({'x': x + 4, 'y': 41})
-        barricades.append({'x': x + 4, 'y': 40})
-        barricades.append({'x': x + 4, 'y': 39})
-        barricades.append({'x': x + 5, 'y': 42})
-        barricades.append({'x': x + 5, 'y': 41})
-        barricades.append({'x': x + 5, 'y': 40})
-        barricades.append({'x': x + 5, 'y': 39})
-        barricades.append({'x': x + 6, 'y': 43})
-        barricades.append({'x': x + 6, 'y': 42})
-        barricades.append({'x': x + 6, 'y': 41})
-        barricades.append({'x': x + 6, 'y': 40})        
+        barricades.append(Barricade(1,{'x': x + 2, 'y': 43}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 2, 'y': 42}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 2, 'y': 41}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 2, 'y': 40}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 3, 'y': 42}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 3, 'y': 41}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 3, 'y': 40}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 3, 'y': 39}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 4, 'y': 42}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 4, 'y': 41}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 4, 'y': 40}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 4, 'y': 39}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 5, 'y': 42}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 5, 'y': 41}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 5, 'y': 40}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 5, 'y': 39}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 6, 'y': 43}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 6, 'y': 42}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 6, 'y': 41}, WHITE))
+        barricades.append(Barricade(1,{'x': x + 6, 'y': 40}, WHITE))        
 
         x += 9
 
