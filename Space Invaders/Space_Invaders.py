@@ -19,6 +19,7 @@ class Level:
 
 
 class Bullet:
+    global game
     def __init__(self, color, direction, coords):
         self.color = color
         self.direction = direction
@@ -31,12 +32,13 @@ class Bullet:
         pygame.draw.rect(DISPLAYSURF, self.color, BulletRec)
 
     def move(self):
+        if self.color == YELLOW:
+            print("Prev: " + str(self.coords['y']) + "   New: " + str(self.coords['y'] + self.direction))
         self.coords['y'] = self.coords['y'] + self.direction # Move it up
-        if self.coords['y'] < 0: # If the bullet has reached the end of the screen
-            bullets.remove(self) # Remove it   
-            game.BulletCounter -= 1 # decrement the bullet counter if its a player bullet  
-        elif self.coords['y'] > 48:
-            bullets.remove(self) # Remove it
+        if self.coords['y'] < 0 or self.coords['y'] > 48: # If the bullet has reached the end of the screen
+            bullets.remove(self) # Remove it  
+            if self.color == YELLOW:
+                game.BulletCounter -= 1 # decrement the bullet counter if its a player bullet  
 
 
 class Alien:
@@ -192,13 +194,7 @@ def runGame():
 
 
     while True: # main game loop
-        direction = eventLoop(playerCoords, direction)
-        
-        # Record collision detection time for science
-        start = time.time()
-        CollisionDetection(aliens, bullets, playerCoords, barricades) # Do that collision detection magic!
-        end = time.time()
-        print('Collision detection time: ' + str(end - start))       
+        direction = eventLoop(playerCoords, direction)               
         
         WaitAmount = speedUp(WaitAmount)
 
@@ -239,6 +235,14 @@ def runGame():
         alienWait -= 1 # Count down for the alien timer             
 
         drawScreen(playerCoords)
+
+
+        # Record collision detection time for science
+        #start = time.time()
+        CollisionDetection(aliens, bullets, playerCoords, barricades) # Do that collision detection magic!
+        #end = time.time()
+        #print('Collision detection time: ' + str(end - start))      
+
 
         if len(aliens) == 0: # Check if there are still aliens
             game.WinStatus = True
@@ -292,11 +296,11 @@ def eventLoop(playerCoords, direction):
             elif event.key == K_ESCAPE:
                 terminate()
             elif event.key == K_SPACE: 
-                if game.BulletCounter < 5:
-                    bulletLeft = Bullet(YELLOW, -1, {'x': playerCoords['x'] - 1, 'y': playerCoords['y'] - 1}) # Create the left bullet
-                    bulletCenter = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1})     # Create the center bullet
-                    bulletRight = Bullet(YELLOW, -1, {'x': playerCoords['x'] + 1, 'y': playerCoords['y'] - 1}) # Create the right bullet
-                    game.BulletCounter += 1
+                if game.BulletCounter < 15:
+                    bulletLeft = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y']}) # Create the left bullet
+                    bulletCenter = Bullet(YELLOW, -1, {'x': playerCoords['x'] + 1, 'y': playerCoords['y'] - 1})     # Create the center bullet
+                    bulletRight = Bullet(YELLOW, -1, {'x': playerCoords['x'] + 2, 'y': playerCoords['y']}) # Create the right bullet
+                    game.BulletCounter += 3
                     bullets.append(bulletLeft) #Add to bullet list
                     bullets.append(bulletCenter)
                     bullets.append(bulletRight)
@@ -445,6 +449,14 @@ def drawLivesAndLevel():
     levelRect.topleft = (x + CELLSIZE, 1)
     DISPLAYSURF.blit(levelSurf, levelRect)
 
+    if game.BulletCounter >= 15:
+        bulletSurf = BASICFONT.render('Player Bullets on Screen: %s' % (game.BulletCounter), True, RED)
+    else:
+        bulletSurf = BASICFONT.render('Player Bullets on Screen: %s' % (game.BulletCounter), True, WHITE)
+    bulletRect = levelSurf.get_rect()
+    bulletRect.topleft = (180 + CELLSIZE, 1)
+    DISPLAYSURF.blit(bulletSurf, bulletRect)
+
 def drawPlayer(playerCoords):
     x = playerCoords['x'] * CELLSIZE
     y = playerCoords['y'] * CELLSIZE  
@@ -484,6 +496,8 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
                     else:
                         aliens.remove(alien) # Kill alien
                     bullets.remove(bullet) # Remove bullet
+                    if bullet.color == YELLOW:
+                        game.BulletCounter -= 1 # decrement the bullet counter if its a player bullet  
                     game.Score += 10 # 10 points Gryffindor!!!                                
                     break
 
@@ -493,6 +507,8 @@ def CollisionDetection(aliens, bullets, playerCoords, barricades):
                 if abs(barricade.coords['x'] - bullet.coords['x']) < 1 and abs(barricade.coords['y'] - bullet.coords['y']) == 0: # Check if a bullet is on the same cell as a barricade part
                     barricades.remove(barricade) # remove barricade
                     bullets.remove(bullet) # Remove bullet
+                    if bullet.color == YELLOW:
+                        game.BulletCounter -= 1 # decrement the bullet counter if its a player bullet  
                     break
 
         #Check if bullet is in range of player
