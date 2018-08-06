@@ -192,7 +192,7 @@ def runGame():
         if alien.coords['x'] > (WINDOWWIDTH / CELLSIZE) -  2 or alien.coords['x'] <  1: # Reached the end, signify a down and change direction
             changeDir = True
 
-
+    count = 0
     while True: # main game loop
         direction = eventLoop(playerCoords, direction)               
         
@@ -202,6 +202,12 @@ def runGame():
         
         for bullet in bullets:
             bullet.move()
+
+            if bullet.color == YELLOW:
+                count += 1
+                if count == 3:
+                    count = 0
+                    print("_____________________")
 
         # Move the aliens
         if len(aliens) > 0 and alienWait == 0: #If wait is up and there are aliens
@@ -297,9 +303,9 @@ def eventLoop(playerCoords, direction):
                 terminate()
             elif event.key == K_SPACE: 
                 if game.BulletCounter < 15:
-                    bulletLeft = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y']}) # Create the left bullet
+                    bulletLeft =   Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y']}) # Create the left bullet
                     bulletCenter = Bullet(YELLOW, -1, {'x': playerCoords['x'] + 1, 'y': playerCoords['y'] - 1})     # Create the center bullet
-                    bulletRight = Bullet(YELLOW, -1, {'x': playerCoords['x'] + 2, 'y': playerCoords['y']}) # Create the right bullet
+                    bulletRight =  Bullet(YELLOW, -1, {'x': playerCoords['x'] + 2, 'y': playerCoords['y']}) # Create the right bullet
                     game.BulletCounter += 3
                     bullets.append(bulletLeft) #Add to bullet list
                     bullets.append(bulletCenter)
