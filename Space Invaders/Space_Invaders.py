@@ -2,11 +2,12 @@ import random, pygame, sys, time
 from pygame.locals import *
 
 class Game:
-    def __init__(self, Score, Lives, WinStatus, GameOver):
+    def __init__(self, Score, Lives, WinStatus, GameOver, BulletCounter):
         self.Score = Score
         self.Lives = Lives
         self.WinStatus = WinStatus
         self.GameOver = GameOver
+        self.BulletCounter = BulletCounter
 
 
 class Level:
@@ -31,7 +32,10 @@ class Bullet:
 
     def move(self):
         self.coords['y'] = self.coords['y'] + self.direction # Move it up
-        if self.coords['y'] < 0 or self.coords['y'] > 48: # If the bullet has reached the end of the screen
+        if self.coords['y'] < 0: # If the bullet has reached the end of the screen
+            bullets.remove(self) # Remove it   
+            game.BulletCounter -= 1 # decrement the bullet counter if its a player bullet  
+        elif self.coords['y'] > 48:
             bullets.remove(self) # Remove it
 
 
@@ -96,7 +100,7 @@ ORANGE    = (242, 169,  53)
 BGCOLOR = BLACK
 
 # Setup Game Object
-game = Game(0, 3, False, False)
+game = Game(0, 3, False, False, 0)
 currentLevel = -1
 
 # Lists
@@ -134,6 +138,7 @@ def main():
         runGame() # Main game loop
         showGameOverScreen()
         bullets.clear() # Clear the bullets from the screen
+        game.BulletCounter = 0
         game.GameOver = False
         
         if game.WinStatus:
@@ -180,6 +185,7 @@ def runGame():
     x = 1
     y = 0
 
+    # Check if the aliens are at the end of the screen and flag to change direction.
     for alien in aliens: # Loop through each alien                                
         if alien.coords['x'] > (WINDOWWIDTH / CELLSIZE) -  2 or alien.coords['x'] <  1: # Reached the end, signify a down and change direction
             changeDir = True
@@ -285,9 +291,15 @@ def eventLoop(playerCoords, direction):
                 direction = 'right'
             elif event.key == K_ESCAPE:
                 terminate()
-            elif event.key == K_SPACE:                    
-                bullet = Bullet(YELLOW, -1, {'x': playerCoords['x'] + 1, 'y': playerCoords['y'] - 1}) # Create the bullet
-                bullets.append(bullet) #Add to bullet list
+            elif event.key == K_SPACE: 
+                if game.BulletCounter < 5:
+                    bulletLeft = Bullet(YELLOW, -1, {'x': playerCoords['x'] - 1, 'y': playerCoords['y'] - 1}) # Create the left bullet
+                    bulletCenter = Bullet(YELLOW, -1, {'x': playerCoords['x'], 'y': playerCoords['y'] - 1})     # Create the center bullet
+                    bulletRight = Bullet(YELLOW, -1, {'x': playerCoords['x'] + 1, 'y': playerCoords['y'] - 1}) # Create the right bullet
+                    game.BulletCounter += 1
+                    bullets.append(bulletLeft) #Add to bullet list
+                    bullets.append(bulletCenter)
+                    bullets.append(bulletRight)
             elif event.key == K_k: # if 'k' is pressed 
                 aliens.clear()
         elif event.type == KEYUP: # Signify that the movement should stop
