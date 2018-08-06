@@ -8,12 +8,14 @@ class Game:
         self.WinStatus = WinStatus
         self.GameOver = GameOver
 
+
 class Level:
     def __init__(self, levelNum, orangeAliens, purpleAliens, alienSpeed):
         self.levelNum = levelNum
         self.orangeAliens = orangeAliens
         self.purpleAliens = purpleAliens
         self.alienSpeed = alienSpeed
+
 
 class Bullet:
     def __init__(self, color, direction, coords):
@@ -32,6 +34,7 @@ class Bullet:
         if self.coords['y'] < 0 or self.coords['y'] > 48: # If the bullet has reached the end of the screen
             bullets.remove(self) # Remove it
 
+
 class Alien:
     def __init__(self, level, coords, color):
         self.level = level
@@ -47,14 +50,12 @@ class Alien:
     def LowerLevel(self):
         self.level = self.level - 1 
         
-        #Reset to the correct color for the new level
+        # Reset to the correct color for the new level
         if self.level == 1:
             self.color = RED
         elif self.level == 2:
             self.color = PURPLE      
-            
-
-    
+               
 
 class Barricade:
     def __init__(self, level, coords, color):
@@ -80,7 +81,7 @@ assert WINDOWHEIGHT % CELLSIZE == 0, "Window height must be a multiple of cell s
 CELLWIDTH = int(WINDOWWIDTH / CELLSIZE)
 CELLHEIGHT = int(WINDOWHEIGHT / CELLSIZE)
 
-#Colors
+# Colors
 #             R    G    B
 WHITE     = (255, 255, 255)
 BLACK     = (  0,   0,   0)
@@ -94,42 +95,45 @@ PURPLE    = (185,  66, 244)
 ORANGE    = (242, 169,  53)
 BGCOLOR = BLACK
 
-#Setup Game Object
+# Setup Game Object
 game = Game(0, 3, False, False)
 currentLevel = -1
 
-#Lists
+# Lists
 bullets = []
 aliens = []
 barricades = []
 levels = []
 
-#Alien Vars
+# Alien Vars
 alienLowest = -1
 alienHighest = -1
 TotalAliens = -1
 
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, aliens, TotalAliens, game, currentLevel, bullets, levels
+    
+    # pygame initialization
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('Space Invaders')
 
-    #Create populate the level definitions
+    # Create populate the level definitions
     levelNum = 0
     levels = createLevels()
     currentLevel = levels[levelNum]
-    #Create aliens and 
+
+    # Create aliens and barricades
     CreateAliens()
     TotalAliens = len(aliens)
     CreateBarricades()
 
     while True:
-        runGame()
+        runGame() # Main game loop
         showGameOverScreen()
-        bullets.clear()
+        bullets.clear() # Clear the bullets from the screen
         game.GameOver = False
         
         if game.WinStatus:
@@ -162,6 +166,7 @@ def createLevels():
 
 def runGame():
     global game, alienLowest, alienHighest
+
     # Player Vars
     playerCoords = {'x': 5, 'y': 45}
     direction = 'none'     
@@ -174,6 +179,11 @@ def runGame():
     CurrentAlienCount = 0
     x = 1
     y = 0
+
+    for alien in aliens: # Loop through each alien                                
+        if alien.coords['x'] > (WINDOWWIDTH / CELLSIZE) -  2 or alien.coords['x'] <  1: # Reached the end, signify a down and change direction
+            changeDir = True
+
 
     while True: # main game loop
         direction = eventLoop(playerCoords, direction)
@@ -232,7 +242,7 @@ def runGame():
 
 def drawScreen(playerCoords):
     #Draw Everything!
-    DISPLAYSURF.fill(BGCOLOR)
+    DISPLAYSURF.fill(BGCOLOR) # Fill in the background color
     drawGrid()
     drawPlayer(playerCoords)
     for barricade in barricades: # for each barricade part    
