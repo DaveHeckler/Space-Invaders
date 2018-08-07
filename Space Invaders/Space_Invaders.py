@@ -31,15 +31,14 @@ class Bullet:
         BulletRec = pygame.Rect(x,y, CELLSIZE, CELLSIZE)
         pygame.draw.rect(DISPLAYSURF, self.color, BulletRec)
 
-    def move(self):
-        if self.color == YELLOW:
-            print("Prev: " + str(self.coords['y']) + "   New: " + str(self.coords['y'] + self.direction))
-        self.coords['y'] = self.coords['y'] + self.direction # Move it up
+    def move(self):        
+        self.coords['y'] = self.coords['y'] + self.direction # Move it up   
+        
+    def checkIfOffScreen(self):
         if self.coords['y'] < 0 or self.coords['y'] > 48: # If the bullet has reached the end of the screen
             bullets.remove(self) # Remove it  
             if self.color == YELLOW:
                 game.BulletCounter -= 1 # decrement the bullet counter if its a player bullet  
-
 
 class Alien:
     def __init__(self, level, coords, color):
@@ -192,7 +191,6 @@ def runGame():
         if alien.coords['x'] > (WINDOWWIDTH / CELLSIZE) -  2 or alien.coords['x'] <  1: # Reached the end, signify a down and change direction
             changeDir = True
 
-    count = 0
     while True: # main game loop
         direction = eventLoop(playerCoords, direction)               
         
@@ -203,11 +201,8 @@ def runGame():
         for bullet in bullets:
             bullet.move()
 
-            if bullet.color == YELLOW:
-                count += 1
-                if count == 3:
-                    count = 0
-                    print("_____________________")
+        for bullet in bullets:
+            bullet.checkIfOffScreen()
 
         # Move the aliens
         if len(aliens) > 0 and alienWait == 0: #If wait is up and there are aliens
@@ -236,7 +231,7 @@ def runGame():
                     break
 
             alienWait = WaitAmount # Reset the timer
-            AlienShoot(aliens) # Have the aliens shoot
+            #AlienShoot(aliens) # Have the aliens shoot
         
         alienWait -= 1 # Count down for the alien timer             
 
@@ -244,10 +239,10 @@ def runGame():
 
 
         # Record collision detection time for science
-        #start = time.time()
+        start = time.time()
         CollisionDetection(aliens, bullets, playerCoords, barricades) # Do that collision detection magic!
-        #end = time.time()
-        #print('Collision detection time: ' + str(end - start))      
+        end = time.time()
+        print('Collision detection time: ' + str(end - start))      
 
 
         if len(aliens) == 0: # Check if there are still aliens
