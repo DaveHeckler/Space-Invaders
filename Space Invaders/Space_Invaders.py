@@ -231,8 +231,9 @@ def runGame():
                     break
 
             alienWait = WaitAmount # Reset the timer
-            #AlienShoot(aliens) # Have the aliens shoot
-        
+            AlienShoot(aliens) # Have the aliens shoot
+            AlienShoot(aliens) # Have the aliens shoot
+
         alienWait -= 1 # Count down for the alien timer             
 
         drawScreen(playerCoords)
