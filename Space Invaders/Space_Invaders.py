@@ -326,6 +326,7 @@ def terminate():
     sys.exit()
 
 def showGameOverScreen():
+    global game
     #Default victory message
     top = 'KEEP'
     bottom = 'GOING'
@@ -351,7 +352,9 @@ def showGameOverScreen():
 
     if (game.Lives == 0):
         terminate()
-
+        
+    #game.Lives += 1
+    
     checkForKeyPress() #clear out any key presses in the event queue
 
     while True:
